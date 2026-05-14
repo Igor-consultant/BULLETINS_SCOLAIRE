@@ -6,6 +6,7 @@ use App\Models\AnneeScolaire;
 use App\Models\Classe;
 use App\Models\Eleve;
 use App\Models\Inscription;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -26,12 +27,20 @@ class EleveInscriptionController extends Controller
             ->orderBy('classe_id')
             ->get();
 
+        $historicalByEleve = DB::table('historical_import_result_mappings')
+            ->selectRaw('eleve_id, COUNT(*) AS result_count, COUNT(DISTINCT annee_scolaire_id) AS year_count, COUNT(DISTINCT classe_id) AS class_count')
+            ->groupBy('eleve_id')
+            ->get()
+            ->keyBy('eleve_id');
+
         return view('eleves.inscriptions', [
             'inscriptions' => $inscriptions,
+            'historicalByEleve' => $historicalByEleve,
             'stats' => [
                 'eleves' => Eleve::count(),
                 'inscriptions' => Inscription::count(),
                 'classes_couvertes' => Inscription::distinct('classe_id')->count('classe_id'),
+                'eleves_historiques' => $historicalByEleve->count(),
             ],
         ]);
     }

@@ -25,6 +25,10 @@
                             <div class="i3p-label text-slate-200">Classes couvertes</div>
                             <div class="mt-2 text-[2rem] font-bold">{{ $stats['classes_couvertes'] }}</div>
                         </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+                            <div class="i3p-label text-slate-200">Eleves avec historique</div>
+                            <div class="mt-2 text-[2rem] font-bold">{{ $stats['eleves_historiques'] }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -64,14 +68,24 @@
                     </thead>
                     <tbody>
                         @foreach ($inscriptions as $inscription)
+                            @php
+                                $historicalSummary = $historicalByEleve->get($inscription->eleve_id);
+                            @endphp
                             <tr class="border-b border-slate-100 last:border-b-0">
                                 <td class="font-bold text-slate-900">{{ $inscription->eleve?->matricule }}</td>
                                 <td>
                                     <div class="text-[15px] font-bold text-slate-900">
                                         {{ $inscription->eleve?->nom }} {{ $inscription->eleve?->prenoms }}
                                     </div>
-                                    <div class="mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
-                                        {{ $inscription->eleve?->sexe ?: 'N/A' }}
+                                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                                        <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                                            {{ $inscription->eleve?->sexe ?: 'N/A' }}
+                                        </span>
+                                        @if ($historicalSummary)
+                                            <span class="i3p-badge border-[#0ca6e8]/20 bg-[#0ca6e8]/10 text-[#0f4d6a]">
+                                                {{ $historicalSummary->year_count }} annee(s) historique(s)
+                                            </span>
+                                        @endif
                                     </div>
                                 </td>
                                 <td>
@@ -96,9 +110,16 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{{ route('eleves.inscriptions.edit', $inscription) }}" class="i3p-link !border-[#0ca6e8]/20 !bg-[#0ca6e8]/10 !text-[#0f4d6a]">
-                                        Modifier
-                                    </a>
+                                    <div class="flex flex-wrap gap-2">
+                                        <a href="{{ route('eleves.inscriptions.edit', $inscription) }}" class="i3p-link !border-[#0ca6e8]/20 !bg-[#0ca6e8]/10 !text-[#0f4d6a]">
+                                            Modifier
+                                        </a>
+                                        @if ($historicalSummary)
+                                            <a href="{{ route('bulletins.historiques', ['eleve_id' => $inscription->eleve_id]) }}" class="i3p-link !border-[#b02f25]/20 !bg-[#b02f25]/10 !text-[#7d221b]">
+                                                Historique
+                                            </a>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

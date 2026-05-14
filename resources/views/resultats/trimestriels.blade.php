@@ -69,9 +69,14 @@
                         <h2 class="i3p-section-title mt-2">{{ $bloc['classe']->code }} - {{ $bloc['classe']->nom }}</h2>
                         <p class="mt-2 text-[14px] text-slate-600">Filiere : {{ $bloc['classe']->filiere?->nom ?? 'Non definie' }}</p>
                     </div>
-                    <span class="i3p-badge border-[#0ca6e8]/20 bg-[#0ca6e8]/10 text-[#0f4d6a]">
-                        {{ $bloc['eleves']->count() }} eleves
-                    </span>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="i3p-badge border-[#0ca6e8]/20 bg-[#0ca6e8]/10 text-[#0f4d6a]">
+                            {{ $bloc['eleves']->count() }} eleves
+                        </span>
+                        <a href="{{ route('bulletins.historiques', ['classe_id' => $bloc['classe']->id]) }}" class="i3p-link !border-[#b02f25]/20 !bg-[#b02f25]/10 !text-[#7d221b]">
+                            Historique classe
+                        </a>
+                    </div>
                 </div>
 
                 <div class="mt-6 space-y-6">
@@ -95,6 +100,9 @@
                                             Rang : {{ $ligne['rang'] }}
                                         </span>
                                     @endif
+                                    <a href="{{ route('bulletins.historiques', ['eleve_id' => $ligne['eleve']->id, 'classe_id' => $bloc['classe']->id]) }}" class="i3p-link !border-slate-200 !bg-slate-100 !text-slate-700">
+                                        Historique eleve
+                                    </a>
                                     @if ($trimestre && ($ligne['acces_bulletin_autorise'] ?? true))
                                         <a href="{{ route('bulletins.show', [$ligne['eleve'], $trimestre]) }}" class="i3p-link !border-[#0ca6e8]/20 !bg-[#0ca6e8]/10 !text-[#0f4d6a]">
                                             Bulletin

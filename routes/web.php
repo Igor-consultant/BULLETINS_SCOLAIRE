@@ -4,6 +4,7 @@ use App\Http\Controllers\BulletinController;
 use App\Http\Controllers\ComptabiliteController;
 use App\Http\Controllers\EleveInscriptionController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\HistoricalImportReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReferentielMatiereController;
 use App\Http\Controllers\ResultatTrimestrielController;
@@ -55,6 +56,18 @@ $ensureNonParentAccess = function () {
 };
 
 Route::get('/', function () {
+    if (! auth()->check()) {
+        return redirect()->route('login');
+    }
+
+    if (auth()->user()?->hasRole('parent')) {
+        return redirect()->route('portail.parent');
+    }
+
+    return redirect()->route('dashboard');
+})->name('home');
+
+Route::get('/accueil', function () {
     $hasCoreTables = Schema::hasTable('annees_scolaires')
         && Schema::hasTable('trimestres')
         && Schema::hasTable('filieres')
@@ -76,7 +89,7 @@ Route::get('/', function () {
             'classes' => $hasCoreTables ? Classe::count() : 0,
         ],
     ]);
-});
+})->middleware(['auth', 'verified'])->name('accueil');
 
 Route::get('/dashboard', function () use ($ensureNonParentAccess) {
     $ensureNonParentAccess();
@@ -296,6 +309,9 @@ Route::post('/resultats/trimestriels/enregistrer', [ResultatTrimestrielControlle
 Route::get('/bulletins/lots', [BulletinController::class, 'lots'])
     ->middleware(['auth', 'verified'])
     ->name('bulletins.lots');
+Route::get('/bulletins/historiques', [HistoricalImportReportController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('bulletins.historiques');
 Route::post('/bulletins/lots/generer', [BulletinController::class, 'generateLot'])
     ->middleware(['auth', 'verified'])
     ->name('bulletins.lots.generer');

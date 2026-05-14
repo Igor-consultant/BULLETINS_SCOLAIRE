@@ -63,6 +63,9 @@
                             <a href="{{ route('resultats.trimestriels') }}" class="i3p-link {{ request()->routeIs('resultats.trimestriels') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
                                 Resultats
                             </a>
+                            <a href="{{ route('bulletins.historiques') }}" class="i3p-link {{ request()->routeIs('bulletins.historiques') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
+                                Historiques
+                            </a>
                         @endif
                         @if ($canAccessAudits)
                             <a href="{{ route('audits.index') }}" class="i3p-link {{ request()->routeIs('audits.*') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
@@ -168,6 +171,9 @@
                     @if ($canAccessResultats)
                         <x-responsive-nav-link :href="route('resultats.trimestriels')" :active="request()->routeIs('resultats.trimestriels')">
                             Resultats
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('bulletins.historiques')" :active="request()->routeIs('bulletins.historiques')">
+                            Historiques
                         </x-responsive-nav-link>
                     @endif
 

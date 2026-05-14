@@ -151,6 +151,9 @@
                         <a href="{{ route('resultats.trimestriels') }}" class="i3p-link !border-slate-200 !bg-slate-100 !text-slate-700">
                             Ouvrir les resultats
                         </a>
+                        <a href="{{ route('bulletins.historiques') }}" class="i3p-link !border-[#0ca6e8]/20 !bg-[#0ca6e8]/10 !text-[#0f4d6a]">
+                            Consulter les historiques
+                        </a>
                     </div>
                 </div>
             </article>

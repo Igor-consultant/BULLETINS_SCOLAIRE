@@ -16,6 +16,7 @@ class HistoricalImportReportController extends Controller
     {
         $this->ensureRoles(['administration', 'direction']);
 
+        $search = trim((string) $request->string('q'));
         $selectedYearId = $request->integer('annee_scolaire_id') ?: null;
         $selectedClasseId = $request->integer('classe_id') ?: null;
         $selectedEleveId = $request->integer('eleve_id') ?: null;
@@ -68,6 +69,16 @@ class HistoricalImportReportController extends Controller
             ->join('trimestres as trimestres', 'trimestres.id', '=', 'mappings.trimestre_id')
             ->join('matieres as matieres', 'matieres.id', '=', 'mappings.matiere_id')
             ->join('resultats as resultats', 'resultats.id', '=', 'mappings.resultat_id')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery
+                        ->where('eleves.matricule', 'like', "%{$search}%")
+                        ->orWhere('eleves.nom', 'like', "%{$search}%")
+                        ->orWhere('eleves.prenoms', 'like', "%{$search}%")
+                        ->orWhere('classes.code', 'like', "%{$search}%")
+                        ->orWhere('matieres.libelle', 'like', "%{$search}%");
+                });
+            })
             ->when($selectedYearId !== null, fn ($query) => $query->where('mappings.annee_scolaire_id', $selectedYearId))
             ->when($selectedClasseId !== null, fn ($query) => $query->where('mappings.classe_id', $selectedClasseId))
             ->when($selectedEleveId !== null, fn ($query) => $query->where('mappings.eleve_id', $selectedEleveId))
@@ -117,6 +128,7 @@ class HistoricalImportReportController extends Controller
             'eleves' => $eleves,
             'finalizations' => $finalizations,
             'results' => $results,
+            'search' => $search,
             'selectedYearId' => $selectedYearId,
             'selectedClasseId' => $selectedClasseId,
             'selectedEleveId' => $selectedEleveId,

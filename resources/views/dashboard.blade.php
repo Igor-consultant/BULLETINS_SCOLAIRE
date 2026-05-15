@@ -42,6 +42,73 @@
             </div>
         @endif
 
+        <section class="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+            <article class="i3p-card p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="i3p-kicker text-[#b02f25]">Centre de commandement</p>
+                        <h2 class="i3p-section-title mt-2">Actions rapides</h2>
+                        <p class="mt-3 max-w-2xl text-[14px] leading-7 text-slate-600">
+                            Ouvre directement les modules les plus utiles pour avancer dans le cycle scolaire sans repasser par la navigation.
+                        </p>
+                    </div>
+                    <span class="i3p-badge border-slate-200 bg-slate-100 text-slate-700">Flux de travail</span>
+                </div>
+
+                <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <a href="{{ route('referentiels.matieres') }}" class="i3p-action-card">
+                        <div class="i3p-action-kicker">Referentiel</div>
+                        <div class="mt-3 text-lg font-bold text-slate-950">Matieres et coefficients</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Structure les matieres par classe avant la saisie.</div>
+                    </a>
+                    <a href="{{ route('eleves.inscriptions') }}" class="i3p-action-card">
+                        <div class="i3p-action-kicker">Scolarite</div>
+                        <div class="mt-3 text-lg font-bold text-slate-950">Eleves et inscriptions</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Consulte, cree et corrige les dossiers eleves.</div>
+                    </a>
+                    <a href="{{ route('notes.evaluations') }}" class="i3p-action-card">
+                        <div class="i3p-action-kicker">Pedagogie</div>
+                        <div class="mt-3 text-lg font-bold text-slate-950">Evaluations et notes</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Pilote les evaluations et la saisie par matiere.</div>
+                    </a>
+                    <a href="{{ route('resultats.trimestriels') }}" class="i3p-action-card">
+                        <div class="i3p-action-kicker">Calcul</div>
+                        <div class="mt-3 text-lg font-bold text-slate-950">Resultats trimestriels</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Calcule les moyennes, les points et les rangs.</div>
+                    </a>
+                    <a href="{{ route('comptabilite.statuts') }}" class="i3p-action-card">
+                        <div class="i3p-action-kicker">Comptabilite</div>
+                        <div class="mt-3 text-lg font-bold text-slate-950">Statuts financiers</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Controle les acces bulletin selon les paiements.</div>
+                    </a>
+                    <a href="{{ route('bulletins.historiques') }}" class="i3p-action-card">
+                        <div class="i3p-action-kicker">Archives</div>
+                        <div class="mt-3 text-lg font-bold text-slate-950">Historiques importes</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Retrouve les resultats anciens par annee, classe ou eleve.</div>
+                    </a>
+                </div>
+            </article>
+
+            <article class="i3p-card p-6">
+                <p class="i3p-kicker text-[#b02f25]">Lecture rapide</p>
+                <h2 class="i3p-section-title mt-2">Priorites du moment</h2>
+                <div class="mt-6 space-y-4">
+                    <div class="i3p-priority-card">
+                        <div class="i3p-priority-title">1. Stabiliser le referentiel</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Verifie les matieres, classes et periodes avant toute saisie de notes.</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-priority-title">2. Completer les dossiers eleves</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Les coordonnees, inscriptions et liens parents doivent etre propres pour la suite.</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-priority-title">3. Produire puis publier</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Saisir, calculer, controler la comptabilite, ensuite generer les bulletins.</div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
         <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <article class="i3p-stat-card">
                 <div class="i3p-label">Annees</div>

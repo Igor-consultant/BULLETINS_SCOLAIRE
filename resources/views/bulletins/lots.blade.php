@@ -40,61 +40,70 @@
             </div>
         @endif
 
-        <section class="i3p-card p-6">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <p class="i3p-kicker text-[#b02f25]">Parametres du lot</p>
-                    <h2 class="i3p-section-title mt-2">Choisir la classe et le trimestre</h2>
-                    <p class="mt-2 text-[14px] text-slate-600">
-                        Les eleves bloques par la comptabilite sont exclus automatiquement du lot ZIP.
-                    </p>
-                </div>
-                <a href="{{ route('resultats.trimestriels') }}" class="i3p-link !border-[#0ca6e8]/20 !bg-[#0ca6e8]/10 !text-[#0f4d6a]">
-                    Retour aux resultats
-                </a>
-            </div>
+        <section class="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+            <article class="i3p-card p-6">
+                <p class="i3p-kicker text-[#b02f25]">Preparation du lot</p>
+                <h2 class="i3p-section-title mt-2">Choisir la classe et le trimestre</h2>
+                <p class="mt-3 text-[14px] leading-7 text-slate-600">
+                    Les eleves bloques par la comptabilite sont exclus automatiquement du lot ZIP pour garantir une sortie conforme.
+                </p>
 
-            <form method="POST" action="{{ route('bulletins.lots.generer') }}" class="mt-6 grid gap-6 lg:grid-cols-2">
-                @csrf
+                <form method="POST" action="{{ route('bulletins.lots.generer') }}" class="mt-6 grid gap-6 lg:grid-cols-2">
+                    @csrf
 
-                <div>
-                    <label for="classe_id" class="i3p-label">Classe</label>
-                    <select
-                        id="classe_id"
-                        name="classe_id"
-                        class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20"
-                    >
-                        <option value="">Selectionner une classe</option>
-                        @foreach ($classes as $classe)
-                            <option value="{{ $classe->id }}" @selected((string) old('classe_id') === (string) $classe->id)>
-                                {{ $classe->code }} - {{ $classe->nom }}{{ $classe->filiere ? ' / '.$classe->filiere->nom : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                    <div>
+                        <label for="classe_id" class="i3p-label">Classe</label>
+                        <select id="classe_id" name="classe_id" class="mt-2 w-full">
+                            <option value="">Selectionner une classe</option>
+                            @foreach ($classes as $classe)
+                                <option value="{{ $classe->id }}" @selected((string) old('classe_id') === (string) $classe->id)>
+                                    {{ $classe->code }} - {{ $classe->nom }}{{ $classe->filiere ? ' / '.$classe->filiere->nom : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div>
-                    <label for="trimestre_id" class="i3p-label">Trimestre</label>
-                    <select
-                        id="trimestre_id"
-                        name="trimestre_id"
-                        class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20"
-                    >
-                        <option value="">Selectionner un trimestre</option>
-                        @foreach ($trimestres as $trimestre)
-                            <option value="{{ $trimestre->id }}" @selected((string) old('trimestre_id') === (string) $trimestre->id)>
-                                {{ $trimestre->libelle }}{{ $trimestre->anneeScolaire ? ' / '.$trimestre->anneeScolaire->libelle : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                    <div>
+                        <label for="trimestre_id" class="i3p-label">Trimestre</label>
+                        <select id="trimestre_id" name="trimestre_id" class="mt-2 w-full">
+                            <option value="">Selectionner un trimestre</option>
+                            @foreach ($trimestres as $trimestre)
+                                <option value="{{ $trimestre->id }}" @selected((string) old('trimestre_id') === (string) $trimestre->id)>
+                                    {{ $trimestre->libelle }}{{ $trimestre->anneeScolaire ? ' / '.$trimestre->anneeScolaire->libelle : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div class="lg:col-span-2">
-                    <button type="submit" class="i3p-link !border-[#b02f25]/20 !bg-[#b02f25]/10 !text-[#7d221b]">
-                        Generer l archive ZIP
-                    </button>
+                    <div class="lg:col-span-2 flex flex-wrap gap-3">
+                        <button type="submit" class="i3p-link !border-[#b02f25]/20 !bg-[#b02f25]/10 !text-[#7d221b]">
+                            Generer l archive ZIP
+                        </button>
+                        <a href="{{ route('resultats.trimestriels') }}" class="i3p-link !border-[#0ca6e8]/20 !bg-[#0ca6e8]/10 !text-[#0f4d6a]">
+                            Retour aux resultats
+                        </a>
+                    </div>
+                </form>
+            </article>
+
+            <article class="i3p-card p-6">
+                <p class="i3p-kicker text-[#b02f25]">Rappel</p>
+                <h2 class="i3p-section-title mt-2">Ce que produit le lot</h2>
+                <div class="mt-6 space-y-4">
+                    <div class="i3p-priority-card">
+                        <div class="i3p-priority-title">1. PDF individuels</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Un bulletin PDF par eleve autorise dans la classe choisie.</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-priority-title">2. Archive ZIP</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Tous les PDF sont regroupes dans une archive unique telechargeable.</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-priority-title">3. Exclusions explicites</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Les cas bloques sont exclus automatiquement pour rester conformes aux regles comptables.</div>
+                    </div>
                 </div>
-            </form>
+            </article>
         </section>
     </div>
 </x-app-layout>

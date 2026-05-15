@@ -22,8 +22,8 @@
                             <div class="mt-2 text-[2rem] font-bold">{{ $paiementStatut->montant_paye !== null ? number_format((float) $paiementStatut->montant_paye, 0, ',', ' ') : '0' }}</div>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
-                            <div class="i3p-label text-slate-200">Ecritures</div>
-                            <div class="mt-2 text-[2rem] font-bold">{{ $paiementStatut->paiements->count() }}</div>
+                            <div class="i3p-label text-slate-200">Ecart restant</div>
+                            <div class="mt-2 text-[2rem] font-bold">{{ number_format((float) $stats['ecart'], 0, ',', ' ') }}</div>
                         </div>
                     </div>
                 </div>
@@ -49,60 +49,83 @@
             </div>
         @endif
 
-        <section class="i3p-card p-6">
-            <div class="flex items-center justify-between gap-4">
-                <div>
-                    <p class="i3p-kicker text-[#b02f25]">Nouvel encaissement</p>
-                    <h2 class="i3p-section-title mt-2">Ajouter une ecriture</h2>
-                </div>
-                <a href="{{ route('comptabilite.statuts') }}" class="i3p-link !border-slate-200 !bg-slate-50 !text-slate-700">
-                    Retour aux statuts
-                </a>
-            </div>
+        <section class="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+            <article class="i3p-card p-6">
+                <p class="i3p-kicker text-[#b02f25]">Encaissement</p>
+                <h2 class="i3p-section-title mt-2">Nouvelle ecriture</h2>
+                <form method="POST" action="{{ route('comptabilite.paiements.store', $paiementStatut) }}" class="mt-6 grid gap-6 lg:grid-cols-2">
+                    @csrf
 
-            <form method="POST" action="{{ route('comptabilite.paiements.store', $paiementStatut) }}" class="mt-6 grid gap-6 lg:grid-cols-2">
-                @csrf
+                    <div>
+                        <label for="date_paiement" class="i3p-label">Date de paiement</label>
+                        <input id="date_paiement" name="date_paiement" type="date" value="{{ old('date_paiement', now()->format('Y-m-d')) }}" class="mt-2 w-full" required>
+                    </div>
 
-                <div>
-                    <label for="date_paiement" class="i3p-label">Date de paiement</label>
-                    <input id="date_paiement" name="date_paiement" type="date" value="{{ old('date_paiement', now()->format('Y-m-d')) }}" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20" required>
-                </div>
+                    <div>
+                        <label for="montant" class="i3p-label">Montant</label>
+                        <input id="montant" name="montant" type="number" min="0.01" step="0.01" value="{{ old('montant') }}" class="mt-2 w-full" required>
+                    </div>
 
-                <div>
-                    <label for="montant" class="i3p-label">Montant</label>
-                    <input id="montant" name="montant" type="number" min="0.01" step="0.01" value="{{ old('montant') }}" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20" required>
-                </div>
+                    <div>
+                        <label for="mode_paiement" class="i3p-label">Mode de paiement</label>
+                        <select id="mode_paiement" name="mode_paiement" class="mt-2 w-full" required>
+                            @foreach ($modesPaiement as $value => $label)
+                                <option value="{{ $value }}" @selected(old('mode_paiement', 'especes') === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div>
-                    <label for="mode_paiement" class="i3p-label">Mode de paiement</label>
-                    <select id="mode_paiement" name="mode_paiement" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20" required>
-                        @foreach ($modesPaiement as $value => $label)
-                            <option value="{{ $value }}" @selected(old('mode_paiement', 'especes') === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                    <div>
+                        <label for="reference" class="i3p-label">Reference</label>
+                        <input id="reference" name="reference" type="text" value="{{ old('reference') }}" class="mt-2 w-full">
+                    </div>
 
-                <div>
-                    <label for="reference" class="i3p-label">Reference</label>
-                    <input id="reference" name="reference" type="text" value="{{ old('reference') }}" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20">
-                </div>
+                    <div class="lg:col-span-2">
+                        <label for="libelle" class="i3p-label">Libelle</label>
+                        <input id="libelle" name="libelle" type="text" value="{{ old('libelle') }}" class="mt-2 w-full" placeholder="Exemple : 1er versement trimestre 1">
+                    </div>
 
-                <div class="lg:col-span-2">
-                    <label for="libelle" class="i3p-label">Libelle</label>
-                    <input id="libelle" name="libelle" type="text" value="{{ old('libelle') }}" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20" placeholder="Exemple : 1er versement trimestre 1">
-                </div>
+                    <div class="lg:col-span-2">
+                        <label for="observation" class="i3p-label">Observation</label>
+                        <textarea id="observation" name="observation" rows="3" class="mt-2 w-full">{{ old('observation') }}</textarea>
+                    </div>
 
-                <div class="lg:col-span-2">
-                    <label for="observation" class="i3p-label">Observation</label>
-                    <textarea id="observation" name="observation" rows="3" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20">{{ old('observation') }}</textarea>
-                </div>
+                    <div class="lg:col-span-2">
+                        <button type="submit" class="i3p-link !border-[#b02f25]/20 !bg-[#b02f25]/10 !text-[#7d221b]">
+                            Enregistrer le paiement
+                        </button>
+                    </div>
+                </form>
+            </article>
 
-                <div class="lg:col-span-2">
-                    <button type="submit" class="i3p-link !border-[#b02f25]/20 !bg-[#b02f25]/10 !text-[#7d221b]">
-                        Enregistrer le paiement
-                    </button>
+            <article class="i3p-card p-6">
+                <p class="i3p-kicker text-[#b02f25]">Lecture rapide</p>
+                <h2 class="i3p-section-title mt-2">Resume du dossier</h2>
+                <div class="mt-6 space-y-4">
+                    <div class="i3p-priority-card">
+                        <div class="i3p-label">Statut</div>
+                        <div class="mt-2 text-lg font-bold text-slate-950">{{ str_replace('_', ' ', ucfirst($paiementStatut->statut)) }}</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-label">Acces bulletin</div>
+                        <div class="mt-2 text-lg font-bold {{ $paiementStatut->autorise_acces_bulletin ? 'text-emerald-700' : 'text-[#8e251d]' }}">
+                            {{ $paiementStatut->autorise_acces_bulletin ? 'Autorise' : 'Bloque' }}
+                        </div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-label">Nombre d ecritures</div>
+                        <div class="mt-2 text-lg font-bold text-slate-950">{{ $stats['ecritures'] }}</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-label">Retour rapide</div>
+                        <div class="mt-3">
+                            <a href="{{ route('comptabilite.statuts') }}" class="i3p-link !border-slate-200 !bg-slate-100 !text-slate-700">
+                                Retour aux statuts
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </form>
+            </article>
         </section>
 
         <section class="i3p-card p-6">
@@ -111,50 +134,55 @@
                 <h2 class="i3p-section-title mt-2">Ecritures enregistrees</h2>
             </div>
 
-            <div class="mt-6 overflow-x-auto">
-                <table class="i3p-table">
-                    <thead>
-                        <tr class="border-b border-slate-200 text-left">
-                            <th>Date</th>
-                            <th>Montant</th>
-                            <th>Mode</th>
-                            <th>Reference</th>
-                            <th>Libelle</th>
-                            <th>Observation</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($paiementStatut->paiements as $paiement)
-                            <tr class="border-b border-slate-100 last:border-b-0">
-                                <td class="text-slate-700">{{ $paiement->date_paiement?->format('d/m/Y') }}</td>
-                                <td class="font-bold text-slate-900">{{ number_format((float) $paiement->montant, 0, ',', ' ') }}</td>
-                                <td class="text-slate-700">{{ ucfirst(str_replace('_', ' ', $paiement->mode_paiement)) }}</td>
-                                <td class="text-slate-700">{{ $paiement->reference ?: 'N/D' }}</td>
-                                <td class="text-slate-700">{{ $paiement->libelle ?: 'N/D' }}</td>
-                                <td class="text-slate-700">{{ $paiement->observation ?: 'Aucune observation' }}</td>
-                                <td>
-                                    <div class="flex flex-wrap gap-2">
-                                        <a href="{{ route('comptabilite.paiements.edit', [$paiementStatut, $paiement]) }}" class="i3p-link !border-slate-200 !bg-slate-50 !text-slate-700">
-                                            Modifier
-                                        </a>
-                                        <form method="POST" action="{{ route('comptabilite.paiements.destroy', [$paiementStatut, $paiement]) }}" onsubmit="return confirm('Confirmer la suppression de cette ecriture de paiement ?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="i3p-link !border-[#b02f25]/20 !bg-[#fff5f3] !text-[#8e251d]">
-                                                Supprimer
-                                            </button>
-                                        </form>
+            <div class="mt-6 space-y-4">
+                @forelse ($paiementStatut->paiements as $paiement)
+                    <article class="i3p-record-card">
+                        <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <span class="i3p-badge border-slate-200 bg-slate-100 text-slate-700">{{ $paiement->date_paiement?->format('d/m/Y') }}</span>
+                                    <span class="i3p-badge border-[#0ca6e8]/20 bg-[#0ca6e8]/10 text-[#0f4d6a]">{{ ucfirst(str_replace('_', ' ', $paiement->mode_paiement)) }}</span>
+                                </div>
+
+                                <div class="mt-4">
+                                    <h3 class="text-xl font-bold tracking-[-0.02em] text-slate-950">{{ number_format((float) $paiement->montant, 0, ',', ' ') }}</h3>
+                                    <p class="mt-2 text-sm text-slate-500">{{ $paiement->libelle ?: 'Libelle non renseigne' }}</p>
+                                </div>
+
+                                <div class="mt-5 grid gap-4 md:grid-cols-3">
+                                    <div class="i3p-record-meta">
+                                        <div class="i3p-label">Reference</div>
+                                        <div class="mt-2 font-bold text-slate-950">{{ $paiement->reference ?: 'N/D' }}</div>
                                     </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="py-6 text-center text-slate-500">Aucun paiement enregistre pour le moment.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                    <div class="i3p-record-meta md:col-span-2">
+                                        <div class="i3p-label">Observation</div>
+                                        <div class="mt-2 text-sm leading-6 text-slate-600">{{ $paiement->observation ?: 'Aucune observation' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex w-full flex-col gap-3 xl:w-[14rem]">
+                                <a href="{{ route('comptabilite.paiements.edit', [$paiementStatut, $paiement]) }}" class="i3p-link !border-slate-200 !bg-slate-100 !text-slate-700">
+                                    Modifier
+                                </a>
+                                <form method="POST" action="{{ route('comptabilite.paiements.destroy', [$paiementStatut, $paiement]) }}" onsubmit="return confirm('Confirmer la suppression de cette ecriture de paiement ?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="i3p-link w-full !border-[#b02f25]/20 !bg-[#fff5f3] !text-[#8e251d]">
+                                        Supprimer
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </article>
+                @empty
+                    <div class="rounded-3xl border border-dashed border-slate-300 bg-white/70 px-6 py-8 text-center">
+                        <div class="text-lg font-bold text-slate-950">Aucun paiement enregistre pour le moment.</div>
+                        <div class="mt-2 text-sm leading-7 text-slate-600">
+                            Ajoute une premiere ecriture pour demarrer le registre.
+                        </div>
+                    </div>
+                @endforelse
             </div>
         </section>
     </div>

@@ -14,11 +14,16 @@ use Illuminate\View\View;
 
 class EvaluationController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->ensureRoles(['administration', 'direction', 'enseignant']);
 
-        $evaluations = Evaluation::query()
+        $search = trim((string) $request->string('q'));
+        $selectedType = $request->string('type')->toString();
+        $selectedStatus = $request->string('statut')->toString();
+        $selectedTrimestreId = $request->integer('trimestre_id');
+
+        $evaluationsQuery = Evaluation::query()
             ->with([
                 'trimestre',
                 'classeMatiere.classe.filiere',
@@ -27,13 +32,50 @@ class EvaluationController extends Controller
             ->withCount('notes')
             ->withCount([
                 'notes as absences_count' => fn ($query) => $query->where('absence', true),
-            ])
+            ]);
+
+        if ($search !== '') {
+            $evaluationsQuery->where(function ($query) use ($search) {
+                $query
+                    ->where('libelle', 'like', "%{$search}%")
+                    ->orWhereHas('classeMatiere.classe', fn ($subQuery) => $subQuery->where('code', 'like', "%{$search}%")->orWhere('nom', 'like', "%{$search}%"))
+                    ->orWhereHas('classeMatiere.matiere', fn ($subQuery) => $subQuery->where('libelle', 'like', "%{$search}%"))
+                    ->orWhereHas('classeMatiere', fn ($subQuery) => $subQuery->where('enseignant_nom', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($selectedType !== '') {
+            $evaluationsQuery->where('type', $selectedType);
+        }
+
+        if ($selectedStatus !== '') {
+            $evaluationsQuery->where('statut', $selectedStatus);
+        }
+
+        if ($selectedTrimestreId > 0) {
+            $evaluationsQuery->where('trimestre_id', $selectedTrimestreId);
+        }
+
+        $evaluations = $evaluationsQuery
             ->orderByDesc('date_evaluation')
             ->orderByDesc('id')
             ->get();
 
+        $trimestres = $this->trimestres();
+        $draftCount = (clone $evaluationsQuery)->where('statut', 'brouillon')->count();
+        $validatedCount = (clone $evaluationsQuery)->where('statut', 'validee')->count();
+        $compositionCount = (clone $evaluationsQuery)->where('type', 'composition')->count();
+        $devoirCount = (clone $evaluationsQuery)->where('type', 'devoir')->count();
+
         return view('notes.evaluations', [
             'evaluations' => $evaluations,
+            'trimestres' => $trimestres,
+            'filters' => [
+                'q' => $search,
+                'type' => $selectedType,
+                'statut' => $selectedStatus,
+                'trimestre_id' => $selectedTrimestreId > 0 ? $selectedTrimestreId : null,
+            ],
             'stats' => [
                 'evaluations' => Evaluation::count(),
                 'notes' => Note::count(),
@@ -41,6 +83,11 @@ class EvaluationController extends Controller
                 'classes_couvertes' => Evaluation::query()
                     ->distinct('classe_matiere_id')
                     ->count('classe_matiere_id'),
+                'filtres' => $evaluations->count(),
+                'brouillons' => $draftCount,
+                'validees' => $validatedCount,
+                'devoirs' => $devoirCount,
+                'compositions' => $compositionCount,
             ],
         ]);
     }
@@ -145,6 +192,12 @@ class EvaluationController extends Controller
             'evaluation' => $evaluation,
             'inscriptions' => $inscriptions,
             'notesByEleve' => $evaluation->notes->keyBy('eleve_id'),
+            'stats' => [
+                'eleves' => $inscriptions->count(),
+                'notes_saisies' => $evaluation->notes->whereNotNull('note')->count(),
+                'absences' => $evaluation->notes->where('absence', true)->count(),
+                'restants' => max(0, $inscriptions->count() - $evaluation->notes->count()),
+            ],
         ]);
     }
 

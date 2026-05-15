@@ -6,6 +6,7 @@ use App\Models\Audit;
 use App\Models\Resultat;
 use App\Services\BulletinWorkflowService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ResultatTrimestrielController extends Controller
@@ -15,12 +16,15 @@ class ResultatTrimestrielController extends Controller
     ) {
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->ensureRoles(['administration', 'direction']);
 
         $data = $this->workflow->buildTrimestrielData();
         $trimestre = $data['trimestre'];
+        $search = trim((string) $request->string('q'));
+        $selectedClasseId = $request->integer('classe_id');
+        $selectedAccess = $request->string('acces')->toString();
 
         if ($trimestre) {
             $data['resultatsParClasse'] = $data['resultatsParClasse']->map(function (array $bloc) use ($trimestre) {
@@ -28,7 +32,7 @@ class ResultatTrimestrielController extends Controller
                     $paiementStatut = $this->workflow->findPaiementStatutForTrimestre($ligne['eleve'], $trimestre);
 
                     $ligne['paiement_statut'] = $paiementStatut;
-                    $ligne['acces_bulletin_autorise'] = $paiementStatut?->autorise_acces_bulletin ?? true;
+                    $ligne['acces_bulletin_autorise'] = $this->workflow->bulletinAccessAllowed($ligne['eleve'], $trimestre);
 
                     return $ligne;
                 });
@@ -36,6 +40,48 @@ class ResultatTrimestrielController extends Controller
                 return $bloc;
             });
         }
+
+        $classes = $data['resultatsParClasse']
+            ->pluck('classe')
+            ->sortBy('code')
+            ->values();
+
+        $filtered = $data['resultatsParClasse']
+            ->when($selectedClasseId > 0, fn ($collection) => $collection->filter(fn (array $bloc) => (int) $bloc['classe']->id === $selectedClasseId))
+            ->map(function (array $bloc) use ($search, $selectedAccess) {
+                $bloc['eleves'] = $bloc['eleves']
+                    ->filter(function (array $ligne) use ($search, $selectedAccess) {
+                        $matchesSearch = $search === ''
+                            || str_contains(mb_strtolower(($ligne['eleve']->matricule ?? '').' '.($ligne['eleve']->nom ?? '').' '.($ligne['eleve']->prenoms ?? '')), mb_strtolower($search));
+
+                        $matchesAccess = match ($selectedAccess) {
+                            'autorise' => (bool) ($ligne['acces_bulletin_autorise'] ?? true) === true,
+                            'bloque' => (bool) ($ligne['acces_bulletin_autorise'] ?? true) === false,
+                            'incomplet' => $ligne['moyenne_generale'] === null || $ligne['matieres']->isEmpty(),
+                            default => true,
+                        };
+
+                        return $matchesSearch && $matchesAccess;
+                    })
+                    ->values();
+
+                return $bloc;
+            })
+            ->filter(fn (array $bloc) => $bloc['eleves']->isNotEmpty())
+            ->values();
+
+        $data['resultatsParClasse'] = $filtered;
+        $data['classes'] = $classes;
+        $data['filters'] = [
+            'q' => $search,
+            'classe_id' => $selectedClasseId > 0 ? $selectedClasseId : null,
+            'acces' => $selectedAccess,
+        ];
+        $data['stats']['filtres'] = $filtered->sum(fn ($bloc) => $bloc['eleves']->count());
+        $data['stats']['classes_filtrees'] = $filtered->count();
+        $data['stats']['bulletins_bloques'] = $filtered->sum(fn ($bloc) => $bloc['eleves']->where('acces_bulletin_autorise', false)->count());
+        $data['stats']['bulletins_autorises'] = $filtered->sum(fn ($bloc) => $bloc['eleves']->where('acces_bulletin_autorise', true)->count());
+        $data['stats']['incomplets'] = $filtered->sum(fn ($bloc) => $bloc['eleves']->filter(fn ($ligne) => $ligne['moyenne_generale'] === null || $ligne['matieres']->isEmpty())->count());
 
         return view('resultats.trimestriels', $data);
     }
@@ -87,7 +133,7 @@ class ResultatTrimestrielController extends Controller
                         'composition' => $matiere['composition'],
                         'moyenne_matiere' => $matiere['moyenne_matiere'],
                         'points' => $matiere['points'],
-                        'rang' => $ligne['rang'],
+                        'rang' => $matiere['rang'],
                         'statut_calcul' => 'provisoire',
                     ];
 

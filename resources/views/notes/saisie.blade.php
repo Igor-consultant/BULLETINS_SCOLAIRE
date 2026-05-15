@@ -7,7 +7,7 @@
                     <h1 class="i3p-title mt-4">{{ $evaluation->libelle }}</h1>
                     <p class="i3p-copy mt-3 max-w-3xl">
                         Saisie par eleve pour {{ $evaluation->classeMatiere?->classe?->code }} en {{ $evaluation->classeMatiere?->matiere?->libelle }}.
-                        Les absences restent separees d'une note.
+                        Les absences restent separees d une note.
                     </p>
                 </div>
 
@@ -24,7 +24,7 @@
         </div>
     </x-slot>
 
-    <div class="i3p-container mt-8 space-y-6">
+    <div class="i3p-container mt-8 space-y-8">
         @if (session('status'))
             <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-700">
                 {{ session('status') }}
@@ -42,8 +42,65 @@
             </div>
         @endif
 
+        <section class="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+            <article class="i3p-card p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="i3p-kicker text-[#b02f25]">Avancement de la saisie</p>
+                        <h2 class="i3p-section-title mt-2">Lecture operationnelle</h2>
+                        <p class="mt-3 max-w-2xl text-[14px] leading-7 text-slate-600">
+                            Cette vue doit permettre de saisir vite, distinguer les absences, et reperer ce qui reste a completer avant validation.
+                        </p>
+                    </div>
+                    <span class="i3p-badge border-slate-200 bg-slate-100 text-slate-700">{{ $stats['eleves'] }} eleve(s)</span>
+                </div>
+
+                <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div class="i3p-priority-card">
+                        <div class="i3p-action-kicker">Saisies</div>
+                        <div class="mt-2 text-2xl font-bold text-slate-950">{{ $stats['notes_saisies'] }}</div>
+                        <div class="mt-2 text-sm text-slate-600">notes deja enregistrees</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-action-kicker">Absences</div>
+                        <div class="mt-2 text-2xl font-bold text-amber-700">{{ $stats['absences'] }}</div>
+                        <div class="mt-2 text-sm text-slate-600">eleves marques absents</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-action-kicker">Restants</div>
+                        <div class="mt-2 text-2xl font-bold text-[#8e251d]">{{ $stats['restants'] }}</div>
+                        <div class="mt-2 text-sm text-slate-600">lignes encore non saisies</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-action-kicker">Statut</div>
+                        <div class="mt-2 text-2xl font-bold text-[#0f4d6a]">{{ ucfirst($evaluation->statut) }}</div>
+                        <div class="mt-2 text-sm text-slate-600">etat courant de l evaluation</div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="i3p-card p-6">
+                <p class="i3p-kicker text-[#b02f25]">Rappel de saisie</p>
+                <h2 class="i3p-section-title mt-2">Regles utiles</h2>
+                <div class="mt-6 space-y-4">
+                    <div class="i3p-priority-card">
+                        <div class="i3p-priority-title">Note comprise entre 0 et {{ rtrim(rtrim(number_format((float) $evaluation->note_sur, 2, '.', ''), '0'), '.') }}</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Toute note hors bareme sera refusee a l enregistrement.</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-priority-title">Absence sans note</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Si l eleve est absent, coche la case et laisse la note vide.</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-priority-title">Observation facultative</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Tu peux noter un cas particulier sans alourdir la grille.</div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
         <section class="i3p-card p-6">
-            <div class="flex items-center justify-between gap-4">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div>
                     <p class="i3p-kicker text-[#b02f25]">Grille de saisie</p>
                     <h2 class="i3p-section-title mt-2">Notes par eleve</h2>
@@ -53,85 +110,86 @@
                 </a>
             </div>
 
-            <form method="POST" action="{{ route('notes.evaluations.saisie', $evaluation) }}" class="mt-6">
+            <form method="POST" action="{{ route('notes.evaluations.saisie', $evaluation) }}" class="mt-6 space-y-6">
                 @csrf
 
-                <div class="overflow-x-auto">
-                    <table class="i3p-table">
-                        <thead>
-                            <tr class="border-b border-slate-200 text-left">
-                                <th>Matricule</th>
-                                <th>Eleve</th>
-                                <th>Note</th>
-                                <th>Absence</th>
-                                <th>Observation</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($inscriptions as $inscription)
-                                @php
-                                    $eleve = $inscription->eleve;
-                                    $note = $notesByEleve->get($eleve->id);
-                                    $oldNote = old("notes.{$eleve->id}.note", $note?->note);
-                                    $oldAbsence = old("notes.{$eleve->id}.absence", $note?->absence ? '1' : '0');
-                                    $oldObservation = old("notes.{$eleve->id}.observation", $note?->observation);
-                                @endphp
-                                <tr class="border-b border-slate-100 last:border-b-0">
-                                    <td class="font-bold text-slate-900">{{ $eleve->matricule }}</td>
-                                    <td>
-                                        <div class="text-[15px] font-bold text-slate-900">{{ $eleve->nom }} {{ $eleve->prenoms }}</div>
-                                        <div class="mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">{{ $eleve->sexe }}</div>
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            name="notes[{{ $eleve->id }}][note]"
-                                            value="{{ $oldNote }}"
-                                            min="0"
-                                            max="{{ (float) $evaluation->note_sur }}"
-                                            step="0.01"
-                                            class="w-28 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20"
-                                        >
-                                    </td>
-                                    <td>
-                                        <label class="inline-flex items-center gap-3 text-sm text-slate-700">
+                <div class="space-y-4">
+                    @foreach ($inscriptions as $inscription)
+                        @php
+                            $eleve = $inscription->eleve;
+                            $note = $notesByEleve->get($eleve->id);
+                            $oldNote = old("notes.{$eleve->id}.note", $note?->note);
+                            $oldAbsence = old("notes.{$eleve->id}.absence", $note?->absence ? '1' : '0');
+                            $oldObservation = old("notes.{$eleve->id}.observation", $note?->observation);
+                        @endphp
+
+                        <article class="i3p-record-card">
+                            <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <span class="i3p-badge border-slate-200 bg-slate-100 text-slate-700">{{ $eleve->matricule }}</span>
+                                        <span class="i3p-badge border-[#0ca6e8]/20 bg-[#0ca6e8]/10 text-[#0f4d6a]">{{ $eleve->sexe ?: 'N/D' }}</span>
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <h3 class="text-xl font-bold tracking-[-0.02em] text-slate-950">{{ $eleve->nom }} {{ $eleve->prenoms }}</h3>
+                                    </div>
+
+                                    <div class="mt-5 grid gap-4 md:grid-cols-3">
+                                        <div class="i3p-record-meta">
+                                            <label for="note_{{ $eleve->id }}" class="i3p-label">Note</label>
                                             <input
-                                                type="hidden"
-                                                name="notes[{{ $eleve->id }}][absence]"
-                                                value="0"
+                                                id="note_{{ $eleve->id }}"
+                                                type="number"
+                                                name="notes[{{ $eleve->id }}][note]"
+                                                value="{{ $oldNote }}"
+                                                min="0"
+                                                max="{{ (float) $evaluation->note_sur }}"
+                                                step="0.01"
+                                                class="mt-2 w-full"
                                             >
+                                        </div>
+
+                                        <div class="i3p-record-meta">
+                                            <div class="i3p-label">Absence</div>
+                                            <label class="mt-3 inline-flex items-center gap-3 text-sm font-semibold text-slate-700">
+                                                <input type="hidden" name="notes[{{ $eleve->id }}][absence]" value="0">
+                                                <input
+                                                    type="checkbox"
+                                                    name="notes[{{ $eleve->id }}][absence]"
+                                                    value="1"
+                                                    @checked($oldAbsence === '1' || $oldAbsence === 1 || $oldAbsence === true)
+                                                    class="h-4 w-4 rounded border-slate-300 text-[#b02f25] focus:ring-[#b02f25]/20"
+                                                >
+                                                Marquer absent
+                                            </label>
+                                        </div>
+
+                                        <div class="i3p-record-meta md:col-span-1">
+                                            <label for="observation_{{ $eleve->id }}" class="i3p-label">Observation</label>
                                             <input
-                                                type="checkbox"
-                                                name="notes[{{ $eleve->id }}][absence]"
-                                                value="1"
-                                                @checked($oldAbsence === '1' || $oldAbsence === 1 || $oldAbsence === true)
-                                                class="h-4 w-4 rounded border-slate-300 text-[#b02f25] focus:ring-[#b02f25]/20"
+                                                id="observation_{{ $eleve->id }}"
+                                                type="text"
+                                                name="notes[{{ $eleve->id }}][observation]"
+                                                value="{{ $oldObservation }}"
+                                                maxlength="1000"
+                                                class="mt-2 w-full"
+                                                placeholder="Observation facultative"
                                             >
-                                            Absent
-                                        </label>
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            name="notes[{{ $eleve->id }}][observation]"
-                                            value="{{ $oldObservation }}"
-                                            maxlength="1000"
-                                            class="w-full min-w-[220px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20"
-                                            placeholder="Observation facultative"
-                                        >
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    @endforeach
                 </div>
 
-                <div class="mt-6 flex flex-wrap gap-3">
+                <div class="flex flex-wrap gap-3">
                     <button type="submit" class="i3p-link !border-[#b02f25]/20 !bg-[#b02f25]/10 !text-[#7d221b]">
                         Enregistrer la saisie
                     </button>
                     <span class="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
-                        Si l'eleve est absent, laisse la note vide et coche "Absent".
+                        Si l eleve est absent, laisse la note vide et coche "Marquer absent".
                     </span>
                 </div>
             </form>

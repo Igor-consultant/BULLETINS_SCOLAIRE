@@ -10,23 +10,23 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="antialiased">
+    <body class="i3p-body antialiased">
         <div class="i3p-shell">
             @include('layouts.navigation')
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="pt-8">
-                    <div class="i3p-container">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
+            <div class="i3p-main lg:pl-[20rem]">
+                @isset($header)
+                    <header class="pt-6 lg:pt-8">
+                        <div class="i3p-container">
+                            {{ $header }}
+                        </div>
+                    </header>
+                @endisset
 
-            <!-- Page Content -->
-            <main class="pb-12">
-                {{ $slot }}
-            </main>
+                <main class="pb-12">
+                    {{ $slot }}
+                </main>
+            </div>
         </div>
     </body>
 </html>

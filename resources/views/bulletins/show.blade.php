@@ -40,28 +40,62 @@
     </x-slot>
 
     <div class="i3p-container mt-8 space-y-8">
-        <section class="i3p-bulletin">
-            <div class="i3p-bulletin-grid">
-                <article class="i3p-bulletin-cell">
-                    <div class="i3p-label">Eleve</div>
-                    <div class="mt-3 text-[1.15rem] font-bold text-slate-900">{{ $eleve->nom }} {{ $eleve->prenoms }}</div>
-                    <div class="i3p-bulletin-meta mt-2">Matricule : {{ $eleve->matricule }}</div>
-                </article>
-                <article class="i3p-bulletin-cell">
-                    <div class="i3p-label">Moyenne generale</div>
-                    <div class="i3p-metric mt-3 text-[#0f4d6a]">
-                        {{ $synthese['moyenne_generale'] !== null ? number_format($synthese['moyenne_generale'], 2, ',', ' ') : 'N/D' }}
+        <section class="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+            <article class="i3p-bulletin">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="i3p-kicker text-[#b02f25]">Lecture du bulletin</p>
+                        <h2 class="i3p-section-title mt-2">Synthese de publication</h2>
+                        <p class="mt-3 max-w-2xl text-[14px] leading-7 text-slate-600">
+                            Cette vue doit permettre de controler rapidement la synthese eleve avant export PDF ou generation en lot.
+                        </p>
                     </div>
-                </article>
-                <article class="i3p-bulletin-cell">
-                    <div class="i3p-label">Total points</div>
-                    <div class="i3p-metric mt-3 text-[#8e251d]">{{ number_format($synthese['total_points'], 2, ',', ' ') }}</div>
-                </article>
-                <article class="i3p-bulletin-cell">
-                    <div class="i3p-label">Rang</div>
-                    <div class="i3p-metric mt-3 text-[#0f4d6a]">{{ $synthese['rang'] ?? 'N/D' }}</div>
-                </article>
-            </div>
+                    <span class="i3p-badge border-slate-200 bg-slate-100 text-slate-700">{{ $resultats->count() }} matiere(s)</span>
+                </div>
+
+                <div class="mt-6 i3p-bulletin-grid">
+                    <article class="i3p-bulletin-cell">
+                        <div class="i3p-label">Eleve</div>
+                        <div class="mt-3 text-[1.15rem] font-bold text-slate-900">{{ $eleve->nom }} {{ $eleve->prenoms }}</div>
+                        <div class="i3p-bulletin-meta mt-2">Matricule : {{ $eleve->matricule }}</div>
+                    </article>
+                    <article class="i3p-bulletin-cell">
+                        <div class="i3p-label">Moyenne generale</div>
+                        <div class="i3p-metric mt-3 text-[#0f4d6a]">
+                            {{ $synthese['moyenne_generale'] !== null ? number_format($synthese['moyenne_generale'], 2, ',', ' ') : 'N/D' }}
+                        </div>
+                        <div class="i3p-bulletin-meta mt-2">{{ $synthese['appreciation_generale'] }}</div>
+                    </article>
+                    <article class="i3p-bulletin-cell">
+                        <div class="i3p-label">Total points</div>
+                        <div class="i3p-metric mt-3 text-[#8e251d]">{{ number_format($synthese['total_points'], 2, ',', ' ') }}</div>
+                    </article>
+                    <article class="i3p-bulletin-cell">
+                        <div class="i3p-label">Rang</div>
+                        <div class="i3p-metric mt-3 text-[#0f4d6a]">{{ $synthese['rang'] ?? 'N/D' }}</div>
+                        <div class="i3p-bulletin-meta mt-2">{{ $synthese['effectif'] }} eleve(s) dans la classe</div>
+                    </article>
+                </div>
+            </article>
+
+            <article class="i3p-bulletin">
+                <p class="i3p-kicker text-[#b02f25]">Actions finales</p>
+                <h2 class="i3p-section-title mt-2">Publication</h2>
+                <div class="mt-6 space-y-4">
+                    <a href="{{ route('resultats.trimestriels') }}" class="i3p-action-row">
+                        <span class="font-bold text-slate-950">Retour aux resultats</span>
+                        <span class="text-sm text-slate-500">Revenir a la vue de validation trimestrielle</span>
+                    </a>
+                    <a href="{{ route('bulletins.pdf', [$eleve, $trimestre]) }}" class="i3p-action-row">
+                        <span class="font-bold text-slate-950">Exporter le bulletin PDF</span>
+                        <span class="text-sm text-slate-500">Obtenir le document diffus able</span>
+                    </a>
+                    <a href="{{ route('bulletins.lots') }}" class="i3p-action-row">
+                        <span class="font-bold text-slate-950">Ouvrir la generation en lot</span>
+                        <span class="text-sm text-slate-500">Produire une archive ZIP pour toute une classe</span>
+                    </a>
+                </div>
+            </article>
         </section>
 
         <section class="i3p-bulletin">
@@ -70,15 +104,14 @@
                     <p class="i3p-kicker text-[#b02f25]">Releve academique</p>
                     <h2 class="i3p-section-title mt-2">Resultats par matiere</h2>
                 </div>
-                <a href="{{ route('resultats.trimestriels') }}" class="i3p-link !border-[#0ca6e8]/20 !bg-[#0ca6e8]/10 !text-[#0f4d6a]">
-                    Retour aux resultats
-                </a>
-                <a href="{{ route('bulletins.pdf', [$eleve, $trimestre]) }}" class="i3p-link !border-[#b02f25]/20 !bg-[#b02f25]/10 !text-[#7d221b]">
-                    Export PDF
-                </a>
-                <a href="{{ route('bulletins.lots') }}" class="i3p-link !border-slate-200 !bg-slate-100 !text-slate-700">
-                    Generation en lot
-                </a>
+                <div class="flex flex-wrap gap-3">
+                    <a href="{{ route('resultats.trimestriels') }}" class="i3p-link !border-[#0ca6e8]/20 !bg-[#0ca6e8]/10 !text-[#0f4d6a]">
+                        Retour aux resultats
+                    </a>
+                    <a href="{{ route('bulletins.pdf', [$eleve, $trimestre]) }}" class="i3p-link !border-[#b02f25]/20 !bg-[#b02f25]/10 !text-[#7d221b]">
+                        Export PDF
+                    </a>
+                </div>
             </div>
 
             <div class="mt-6 overflow-x-auto">
@@ -87,31 +120,31 @@
                         <tr class="text-left">
                             <th>Matiere</th>
                             <th>Coef.</th>
-                            <th>Moy. devoirs</th>
+                            <th>Note de classe</th>
                             <th>Composition</th>
-                            <th>Moyenne matiere</th>
+                            <th>Moyenne / 20</th>
                             <th>Points</th>
                             <th>Rang</th>
+                            <th>Professeur</th>
+                            <th>Appreciation</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($resultats as $resultat)
+                        @foreach ($lignes as $ligne)
                             <tr class="last:border-b-0">
-                                <td class="font-bold text-slate-900">{{ $resultat->matiere?->libelle }}</td>
-                                <td class="text-slate-700">{{ rtrim(rtrim(number_format((float) $resultat->coefficient, 2, '.', ''), '0'), '.') }}</td>
-                                <td class="text-slate-700">
-                                    {{ $resultat->moyenne_devoirs !== null ? number_format((float) $resultat->moyenne_devoirs, 2, ',', ' ') : 'N/D' }}
-                                </td>
-                                <td class="text-slate-700">
-                                    {{ $resultat->composition !== null ? number_format((float) $resultat->composition, 2, ',', ' ') : 'N/D' }}
-                                </td>
+                                <td class="font-bold text-slate-900">{{ $ligne['matiere'] }}</td>
+                                <td class="text-slate-700">{{ rtrim(rtrim(number_format((float) $ligne['coefficient'], 2, '.', ''), '0'), '.') }}</td>
+                                <td class="text-slate-700">{{ $ligne['moyenne_devoirs'] !== null ? number_format((float) $ligne['moyenne_devoirs'], 2, ',', ' ') : 'N/D' }}</td>
+                                <td class="text-slate-700">{{ $ligne['composition'] !== null ? number_format((float) $ligne['composition'], 2, ',', ' ') : 'N/D' }}</td>
                                 <td>
                                     <span class="i3p-badge border-emerald-200 bg-emerald-50 text-emerald-700">
-                                        {{ $resultat->moyenne_matiere !== null ? number_format((float) $resultat->moyenne_matiere, 2, ',', ' ') : 'N/D' }}
+                                        {{ $ligne['moyenne_matiere'] !== null ? number_format((float) $ligne['moyenne_matiere'], 2, ',', ' ') : 'N/D' }}
                                     </span>
                                 </td>
-                                <td class="text-slate-700">{{ $resultat->points !== null ? number_format((float) $resultat->points, 2, ',', ' ') : 'N/D' }}</td>
-                                <td class="text-slate-700">{{ $resultat->rang ?? 'N/D' }}</td>
+                                <td class="text-slate-700">{{ $ligne['points'] !== null ? number_format((float) $ligne['points'], 2, ',', ' ') : 'N/D' }}</td>
+                                <td class="text-slate-700">{{ $ligne['rang'] ?? 'N/D' }}</td>
+                                <td class="text-slate-700">{{ $ligne['professeur'] ?? 'N/D' }}</td>
+                                <td class="text-slate-700">{{ $ligne['appreciation'] ?? 'N/D' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -121,9 +154,7 @@
                             <td class="font-bold text-slate-900">{{ rtrim(rtrim(number_format((float) $synthese['total_coefficients'], 2, '.', ''), '0'), '.') }}</td>
                             <td></td>
                             <td></td>
-                            <td class="font-bold text-slate-900">
-                                {{ $synthese['moyenne_generale'] !== null ? number_format($synthese['moyenne_generale'], 2, ',', ' ') : 'N/D' }}
-                            </td>
+                            <td class="font-bold text-slate-900">{{ $synthese['moyenne_generale'] !== null ? number_format($synthese['moyenne_generale'], 2, ',', ' ') : 'N/D' }}</td>
                             <td class="font-bold text-slate-900">{{ number_format($synthese['total_points'], 2, ',', ' ') }}</td>
                             <td class="font-bold text-slate-900">{{ $synthese['rang'] ?? 'N/D' }}</td>
                         </tr>
@@ -135,12 +166,16 @@
                 <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
                     <p class="i3p-kicker text-[#b02f25]">Appreciation generale</p>
                     <p class="mt-3 text-[14px] leading-7 text-slate-700">
-                        Bulletin de demonstration I3P. Cette zone pourra accueillir l appreciation du conseil de classe,
-                        les decisions pedagogiques et les observations de la direction.
+                        {{ $synthese['appreciation_generale'] }}
                     </p>
+                    <div class="mt-4 text-sm text-slate-500">
+                        Premier: {{ $synthese['premier'] !== null ? number_format($synthese['premier'], 2, ',', ' ') : 'N/D' }}
+                        | Dernier: {{ $synthese['dernier'] !== null ? number_format($synthese['dernier'], 2, ',', ' ') : 'N/D' }}
+                    </div>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-white p-5">
                     <p class="i3p-kicker text-[#b02f25]">Visa administratif</p>
+                    <div class="mt-3 text-sm text-slate-600">Sanction: {{ $synthese['sanction'] }}</div>
                     <div class="mt-6 grid gap-6 sm:grid-cols-2">
                         <div>
                             <div class="text-[13px] font-bold text-slate-700">Titulaire</div>

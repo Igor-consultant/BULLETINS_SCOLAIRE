@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="border-b border-white/70 bg-white/75 backdrop-blur-xl">
+<nav x-data="{ open: false }">
     @php
         $user = Auth::user();
         $isParent = $user->hasRole('parent');
@@ -9,207 +9,207 @@
         $canAccessNotes = $user->hasAnyRole(['administration', 'direction', 'enseignant']);
         $canAccessResultats = $user->hasAnyRole(['administration', 'direction']);
         $canAccessAudits = $user->hasRole('administration');
+        $canManageBulletinSettings = $user->hasRole('administration');
+
+        $routeActive = function (array $patterns) {
+            foreach ($patterns as $pattern) {
+                if (request()->routeIs($pattern)) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        $currentZone = match (true) {
+            request()->routeIs('direction.*') => 'Pilotage direction',
+            request()->routeIs('referentiels.*') => 'Referentiels scolaires',
+            request()->routeIs('eleves.*') => 'Scolarite eleves',
+            request()->routeIs('comptabilite.*') => 'Controle comptable',
+            request()->routeIs('notes.*') => 'Saisie pedagogique',
+            request()->routeIs('resultats.*') => 'Resultats trimestriels',
+            request()->routeIs('bulletins.*') => 'Bulletins et archives',
+            request()->routeIs('audits.*') => 'Administration et trace',
+            request()->routeIs('profile.*') => 'Compte utilisateur',
+            request()->routeIs('portail.parent') => 'Portail parent',
+            default => 'Tableau de bord',
+        };
+
+        $menuGroups = $isParent
+            ? [
+                [
+                    'label' => 'Famille',
+                    'items' => [
+                        ['label' => 'Portail parent', 'route' => 'portail.parent', 'patterns' => ['portail.parent']],
+                        ['label' => 'Profil', 'route' => 'profile.edit', 'patterns' => ['profile.*']],
+                    ],
+                ],
+            ]
+            : array_values(array_filter([
+                [
+                    'label' => 'Pilotage',
+                    'items' => array_values(array_filter([
+                        ['label' => 'Tableau de bord', 'route' => 'dashboard', 'patterns' => ['dashboard']],
+                        $canAccessDirection ? ['label' => 'Direction', 'route' => 'direction.dashboard', 'patterns' => ['direction.*']] : null,
+                    ])),
+                ],
+                [
+                    'label' => 'Operations',
+                    'items' => array_values(array_filter([
+                        $canManageReferentiels ? ['label' => 'Matieres', 'route' => 'referentiels.matieres', 'patterns' => ['referentiels.*']] : null,
+                        $canManageEleves ? ['label' => 'Eleves', 'route' => 'eleves.inscriptions', 'patterns' => ['eleves.*']] : null,
+                        $canAccessComptabilite ? ['label' => 'Comptabilite', 'route' => 'comptabilite.statuts', 'patterns' => ['comptabilite.*']] : null,
+                        $canAccessNotes ? ['label' => 'Notes', 'route' => 'notes.evaluations', 'patterns' => ['notes.*']] : null,
+                        $canAccessResultats ? ['label' => 'Resultats', 'route' => 'resultats.trimestriels', 'patterns' => ['resultats.*']] : null,
+                        $canAccessResultats ? ['label' => 'Historiques', 'route' => 'bulletins.historiques', 'patterns' => ['bulletins.historiques']] : null,
+                        $canManageBulletinSettings ? ['label' => 'Parametres bulletin', 'route' => 'bulletins.settings.edit', 'patterns' => ['bulletins.settings.*']] : null,
+                        $canManageBulletinSettings ? ['label' => 'Import scolarite', 'route' => 'administration.import-scolarite.create', 'patterns' => ['administration.import-scolarite.*']] : null,
+                    ])),
+                ],
+                [
+                    'label' => 'Compte',
+                    'items' => array_values(array_filter([
+                        $canAccessAudits ? ['label' => 'Audits', 'route' => 'audits.index', 'patterns' => ['audits.*']] : null,
+                        ['label' => 'Profil', 'route' => 'profile.edit', 'patterns' => ['profile.*']],
+                    ])),
+                ],
+            ]));
     @endphp
-    <div class="i3p-container">
-        <div class="flex min-h-[88px] justify-between gap-6 py-4">
-            <div class="flex items-center gap-5">
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-14 w-auto rounded-xl border border-slate-200 bg-white p-1 shadow-sm" />
-                    </a>
-                </div>
-
-                <div>
-                    <div class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#b02f25]">I3P</div>
-                    <div class="text-lg font-semibold text-slate-900">BULLETINS SCOLAIRE</div>
-                    <div class="text-sm text-slate-500">Plateforme de gestion des bulletins et de suivi pedagogique</div>
-                </div>
-
-                <div class="hidden space-x-3 sm:flex">
-                    @if ($isParent)
-                        <a href="{{ route('portail.parent') }}" class="i3p-link {{ request()->routeIs('portail.parent') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
-                            Portail parent
-                        </a>
-                    @else
-                        <a href="{{ route('dashboard') }}" class="i3p-link {{ request()->routeIs('dashboard') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
-                            Tableau de bord
-                        </a>
-                        @if ($canAccessDirection)
-                            <a href="{{ route('direction.dashboard') }}" class="i3p-link {{ request()->routeIs('direction.*') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
-                                Direction
-                            </a>
-                        @endif
-                        @if ($canManageReferentiels)
-                            <a href="{{ route('referentiels.matieres') }}" class="i3p-link {{ request()->routeIs('referentiels.matieres') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
-                                Matieres
-                            </a>
-                        @endif
-                        @if ($canManageEleves)
-                            <a href="{{ route('eleves.inscriptions') }}" class="i3p-link {{ request()->routeIs('eleves.inscriptions') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
-                                Eleves
-                            </a>
-                        @endif
-                        @if ($canAccessComptabilite)
-                            <a href="{{ route('comptabilite.statuts') }}" class="i3p-link {{ request()->routeIs('comptabilite.statuts') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
-                                Comptabilite
-                            </a>
-                        @endif
-                        @if ($canAccessNotes)
-                            <a href="{{ route('notes.evaluations') }}" class="i3p-link {{ request()->routeIs('notes.evaluations') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
-                                Notes
-                            </a>
-                        @endif
-                        @if ($canAccessResultats)
-                            <a href="{{ route('resultats.trimestriels') }}" class="i3p-link {{ request()->routeIs('resultats.trimestriels') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
-                                Resultats
-                            </a>
-                            <a href="{{ route('bulletins.historiques') }}" class="i3p-link {{ request()->routeIs('bulletins.historiques') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
-                                Historiques
-                            </a>
-                        @endif
-                        @if ($canAccessAudits)
-                            <a href="{{ route('audits.index') }}" class="i3p-link {{ request()->routeIs('audits.*') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
-                                Audits
-                            </a>
-                        @endif
-                    @endif
-                    <a href="{{ route('profile.edit') }}" class="i3p-link {{ request()->routeIs('profile.*') ? '!border-[#b02f25]/25 !bg-[#b02f25]/10 !text-[#7d221b]' : '' }}">
-                        Profil
-                    </a>
+    <div class="border-b border-slate-200/70 bg-white/90 backdrop-blur-xl lg:hidden">
+        <div class="i3p-container flex min-h-[78px] items-center justify-between gap-4 py-4">
+            <div class="flex min-w-0 items-center gap-4">
+                <a href="{{ $isParent ? route('portail.parent') : route('dashboard') }}" class="shrink-0">
+                    <x-application-logo class="h-12 w-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm" />
+                </a>
+                <div class="min-w-0">
+                    <div class="truncate text-[11px] font-bold uppercase tracking-[0.24em] text-[#b02f25]">I3P</div>
+                    <div class="truncate text-base font-bold text-slate-950">{{ $currentZone }}</div>
+                    <div class="truncate text-xs text-slate-500">{{ Auth::user()->getRoleNames()->implode(', ') ?: 'utilisateur' }}</div>
                 </div>
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="56">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:border-[#0ca6e8]/30 hover:text-slate-900">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#0ca6e8] to-[#0a7bb5] text-sm font-bold text-white">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                            </div>
-                            <div class="text-left">
-                                <div>{{ Auth::user()->name }}</div>
-                                <div class="text-xs text-slate-500">{{ Auth::user()->getRoleNames()->implode(', ') ?: 'utilisateur' }}</div>
-                            </div>
-
-                            <svg class="ms-1 h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            Profil
-                        </x-dropdown-link>
-
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                Deconnexion
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
-            </div>
-
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-slate-500 shadow-sm transition hover:text-slate-700">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
+            <button @click="open = ! open" class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-[#0ca6e8]/30 hover:text-slate-950">
+                <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                    <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16M4 12h16M4 17h16" />
+                    <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
     </div>
 
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="i3p-container pb-4">
-            <div class="space-y-2 rounded-3xl border border-white/70 bg-white/85 p-4 shadow-[0_18px_60px_rgba(15,23,42,0.12)]">
-                @if ($isParent)
-                    <x-responsive-nav-link :href="route('portail.parent')" :active="request()->routeIs('portail.parent')">
-                        Portail parent
-                    </x-responsive-nav-link>
-                @else
-                    <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        Tableau de bord
-                    </x-responsive-nav-link>
+    <aside class="fixed inset-y-0 left-0 z-30 hidden w-80 border-r border-slate-200/80 bg-white/92 px-6 py-6 backdrop-blur-xl lg:flex lg:flex-col">
+        <a href="{{ $isParent ? route('portail.parent') : route('dashboard') }}" class="flex items-center gap-4 rounded-[1.75rem] border border-slate-200 bg-white px-4 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+            <x-application-logo class="h-14 w-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm" />
+            <div class="min-w-0">
+                <div class="text-[11px] font-bold uppercase tracking-[0.24em] text-[#b02f25]">I3P</div>
+                <div class="truncate text-lg font-bold tracking-[-0.02em] text-slate-950">BULLETINS SCOLAIRE</div>
+                <div class="truncate text-sm text-slate-500">Pilotage scolaire et bulletins</div>
+            </div>
+        </a>
 
-                    @if ($canAccessDirection)
-                        <x-responsive-nav-link :href="route('direction.dashboard')" :active="request()->routeIs('direction.*')">
-                            Direction
-                        </x-responsive-nav-link>
-                    @endif
-
-                    @if ($canManageReferentiels)
-                        <x-responsive-nav-link :href="route('referentiels.matieres')" :active="request()->routeIs('referentiels.matieres')">
-                            Matieres
-                        </x-responsive-nav-link>
-                    @endif
-
-                    @if ($canManageEleves)
-                        <x-responsive-nav-link :href="route('eleves.inscriptions')" :active="request()->routeIs('eleves.inscriptions')">
-                            Eleves
-                        </x-responsive-nav-link>
-                    @endif
-
-                    @if ($canAccessComptabilite)
-                        <x-responsive-nav-link :href="route('comptabilite.statuts')" :active="request()->routeIs('comptabilite.statuts')">
-                            Comptabilite
-                        </x-responsive-nav-link>
-                    @endif
-
-                    @if ($canAccessNotes)
-                        <x-responsive-nav-link :href="route('notes.evaluations')" :active="request()->routeIs('notes.evaluations')">
-                            Notes
-                        </x-responsive-nav-link>
-                    @endif
-
-                    @if ($canAccessResultats)
-                        <x-responsive-nav-link :href="route('resultats.trimestriels')" :active="request()->routeIs('resultats.trimestriels')">
-                            Resultats
-                        </x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('bulletins.historiques')" :active="request()->routeIs('bulletins.historiques')">
-                            Historiques
-                        </x-responsive-nav-link>
-                    @endif
-
-                    @if ($canAccessAudits)
-                        <x-responsive-nav-link :href="route('audits.index')" :active="request()->routeIs('audits.*')">
-                            Audits
-                        </x-responsive-nav-link>
-                    @endif
-                @endif
-
-                <x-responsive-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.*')">
-                    Profil
-                </x-responsive-nav-link>
+        <div class="mt-6 rounded-[1.75rem] bg-[linear-gradient(150deg,#10233d_0%,#17395a_58%,#0ca6e8_180%)] px-5 py-5 text-white shadow-[0_22px_70px_rgba(15,23,42,0.18)]">
+            <div class="text-[11px] font-bold uppercase tracking-[0.24em] text-[#f0c5ba]">Zone active</div>
+            <div class="mt-3 text-2xl font-bold tracking-[-0.03em]">{{ $currentZone }}</div>
+            <div class="mt-3 text-sm leading-7 text-slate-200">
+                {{ $isParent ? 'Consulte la situation scolaire et financiere de l enfant rattache.' : 'Travaille dans un espace structure par roles, modules et operations prioritaires.' }}
             </div>
         </div>
 
-        <div class="border-t border-white/70 pb-4 pt-2">
-            <div class="i3p-container">
-                <div class="rounded-3xl border border-white/70 bg-white/85 px-4 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.12)]">
-                    <div class="font-medium text-base text-slate-900">{{ Auth::user()->name }}</div>
-                    <div class="font-medium text-sm text-slate-500">{{ Auth::user()->email }}</div>
-                    <div class="mt-1 text-xs uppercase tracking-[0.18em] text-[#b02f25]">{{ Auth::user()->getRoleNames()->implode(', ') ?: 'utilisateur' }}</div>
+        <div class="mt-6 flex-1 space-y-5 overflow-y-auto pe-1">
+            @foreach ($menuGroups as $group)
+                <section class="i3p-sidebar-group">
+                    <div class="i3p-sidebar-group-title">{{ $group['label'] }}</div>
+                    <div class="mt-2 space-y-1.5">
+                        @foreach ($group['items'] as $item)
+                            @php $active = $routeActive($item['patterns']); @endphp
+                            <a href="{{ route($item['route']) }}" class="i3p-sidebar-link {{ $active ? 'is-active' : '' }}">
+                                <span>{{ $item['label'] }}</span>
+                                @if ($active)
+                                    <span class="rounded-full bg-white/70 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#7d221b]">Actif</span>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+            @endforeach
+        </div>
 
-                    <div class="mt-3 space-y-1">
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-
-                            <x-responsive-nav-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                Deconnexion
-                            </x-responsive-nav-link>
-                        </form>
+        <div class="mt-6 rounded-[1.75rem] border border-slate-200 bg-slate-50/90 p-4">
+            <div class="flex items-center gap-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#0ca6e8] to-[#0a7bb5] text-sm font-bold text-white">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                </div>
+                <div class="min-w-0">
+                    <div class="truncate text-sm font-bold text-slate-950">{{ Auth::user()->name }}</div>
+                    <div class="truncate text-xs text-slate-500">{{ Auth::user()->email }}</div>
+                    <div class="mt-1 truncate text-[11px] font-bold uppercase tracking-[0.16em] text-[#b02f25]">
+                        {{ Auth::user()->getRoleNames()->implode(', ') ?: 'utilisateur' }}
                     </div>
                 </div>
             </div>
+
+            <div class="mt-4 flex gap-2">
+                <a href="{{ route('profile.edit') }}" class="i3p-utility-link">Profil</a>
+                <form method="POST" action="{{ route('logout') }}" class="flex-1">
+                    @csrf
+                    <button type="submit" class="i3p-utility-link w-full justify-center text-[#8e251d]">Deconnexion</button>
+                </form>
+            </div>
         </div>
+    </aside>
+
+    <div :class="{ 'opacity-100 pointer-events-auto': open, 'opacity-0 pointer-events-none': !open }" class="fixed inset-0 z-40 bg-slate-950/35 transition lg:hidden">
+        <div @click="open = false" class="absolute inset-0"></div>
+        <aside :class="{ 'translate-x-0': open, '-translate-x-full': !open }" class="absolute inset-y-0 left-0 flex w-[88vw] max-w-sm flex-col bg-white px-5 py-5 shadow-[0_24px_80px_rgba(15,23,42,0.20)] transition">
+            <div class="flex items-center justify-between gap-4">
+                <a href="{{ $isParent ? route('portail.parent') : route('dashboard') }}" class="flex min-w-0 items-center gap-3">
+                    <x-application-logo class="h-12 w-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm" />
+                    <div class="min-w-0">
+                        <div class="truncate text-[11px] font-bold uppercase tracking-[0.22em] text-[#b02f25]">I3P</div>
+                        <div class="truncate text-base font-bold text-slate-950">BULLETINS SCOLAIRE</div>
+                    </div>
+                </a>
+
+                <button @click="open = false" class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm">
+                    <svg class="h-5 w-5" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mt-5 rounded-[1.5rem] bg-slate-50 px-4 py-4">
+                <div class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b02f25]">Zone active</div>
+                <div class="mt-2 text-lg font-bold text-slate-950">{{ $currentZone }}</div>
+                <div class="mt-2 text-sm text-slate-600">{{ Auth::user()->getRoleNames()->implode(', ') ?: 'utilisateur' }}</div>
+            </div>
+
+            <div class="mt-5 flex-1 space-y-5 overflow-y-auto">
+                @foreach ($menuGroups as $group)
+                    <section class="i3p-sidebar-group">
+                        <div class="i3p-sidebar-group-title">{{ $group['label'] }}</div>
+                        <div class="mt-2 space-y-1.5">
+                            @foreach ($group['items'] as $item)
+                                @php $active = $routeActive($item['patterns']); @endphp
+                                <a href="{{ route($item['route']) }}" @click="open = false" class="i3p-sidebar-link {{ $active ? 'is-active' : '' }}">
+                                    <span>{{ $item['label'] }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </section>
+                @endforeach
+            </div>
+
+            <div class="mt-5 rounded-[1.5rem] border border-slate-200 bg-white p-4">
+                <div class="text-sm font-bold text-slate-950">{{ Auth::user()->name }}</div>
+                <div class="mt-1 text-xs text-slate-500">{{ Auth::user()->email }}</div>
+                <div class="mt-4 flex gap-2">
+                    <a href="{{ route('profile.edit') }}" class="i3p-utility-link">Profil</a>
+                    <form method="POST" action="{{ route('logout') }}" class="flex-1">
+                        @csrf
+                        <button type="submit" class="i3p-utility-link w-full justify-center text-[#8e251d]">Deconnexion</button>
+                    </form>
+                </div>
+            </div>
+        </aside>
     </div>
 </nav>

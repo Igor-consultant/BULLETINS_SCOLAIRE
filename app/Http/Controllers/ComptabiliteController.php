@@ -10,26 +10,65 @@ use Illuminate\View\View;
 
 class ComptabiliteController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->ensureRoles(['administration', 'direction', 'comptabilite']);
 
-        $statuts = PaiementStatut::query()
+        $search = trim((string) $request->string('q'));
+        $selectedStatus = $request->string('statut')->toString();
+        $selectedAccess = $request->string('acces')->toString();
+
+        $statutsQuery = PaiementStatut::query()
             ->with([
                 'eleve',
                 'anneeScolaire',
-            ])
+            ]);
+
+        if ($search !== '') {
+            $statutsQuery->whereHas('eleve', function ($query) use ($search) {
+                $query
+                    ->where('matricule', 'like', "%{$search}%")
+                    ->orWhere('nom', 'like', "%{$search}%")
+                    ->orWhere('prenoms', 'like', "%{$search}%")
+                    ->orWhere('nom_parent', 'like', "%{$search}%");
+            });
+        }
+
+        if ($selectedStatus !== '') {
+            $statutsQuery->where('statut', $selectedStatus);
+        }
+
+        if ($selectedAccess === 'autorise') {
+            $statutsQuery->where('autorise_acces_bulletin', true);
+        }
+
+        if ($selectedAccess === 'bloque') {
+            $statutsQuery->where('autorise_acces_bulletin', false);
+        }
+
+        $statuts = $statutsQuery
             ->orderByDesc('annee_scolaire_id')
             ->orderBy('eleve_id')
             ->get();
 
         return view('comptabilite.statuts', [
             'statuts' => $statuts,
+            'filters' => [
+                'q' => $search,
+                'statut' => $selectedStatus,
+                'acces' => $selectedAccess,
+            ],
+            'statutsDisponibles' => $this->statutsDisponibles(),
             'stats' => [
                 'lignes' => PaiementStatut::count(),
                 'autorises' => PaiementStatut::where('autorise_acces_bulletin', true)->count(),
                 'bloques' => PaiementStatut::where('autorise_acces_bulletin', false)->count(),
                 'eleves_couverts' => PaiementStatut::distinct('eleve_id')->count('eleve_id'),
+                'filtres' => $statuts->count(),
+                'a_jour' => (clone $statutsQuery)->where('statut', 'a_jour')->count(),
+                'en_retard' => (clone $statutsQuery)->where('statut', 'en_retard')->count(),
+                'partiel' => (clone $statutsQuery)->where('statut', 'partiel')->count(),
+                'autorisation_exceptionnelle' => (clone $statutsQuery)->where('statut', 'autorisation_exceptionnelle')->count(),
             ],
         ]);
     }
@@ -104,6 +143,10 @@ class ComptabiliteController extends Controller
                 'paiements' => fn ($query) => $query->latest('date_paiement')->latest('id'),
             ]),
             'modesPaiement' => $this->modesPaiement(),
+            'stats' => [
+                'ecart' => max(0, (float) ($paiementStatut->montant_attendu ?? 0) - (float) ($paiementStatut->montant_paye ?? 0)),
+                'ecritures' => $paiementStatut->paiements()->count(),
+            ],
         ]);
     }
 

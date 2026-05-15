@@ -13,18 +13,50 @@ use Illuminate\View\View;
 
 class EleveInscriptionController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->ensureRoles(['administration', 'direction']);
 
-        $inscriptions = Inscription::query()
+        $search = trim((string) $request->string('q'));
+        $selectedStatus = $request->string('statut')->toString();
+        $selectedClasseId = $request->integer('classe_id');
+        $selectedAnneeId = $request->integer('annee_scolaire_id');
+
+        $inscriptionsQuery = Inscription::query()
             ->with([
                 'eleve',
                 'classe.filiere',
                 'anneeScolaire',
-            ])
+            ]);
+
+        if ($search !== '') {
+            $inscriptionsQuery->whereHas('eleve', function ($query) use ($search) {
+                $query
+                    ->where('matricule', 'like', "%{$search}%")
+                    ->orWhere('nom', 'like', "%{$search}%")
+                    ->orWhere('prenoms', 'like', "%{$search}%")
+                    ->orWhere('nom_parent', 'like', "%{$search}%")
+                    ->orWhere('contact_parent', 'like', "%{$search}%")
+                    ->orWhere('contact_principal', 'like', "%{$search}%");
+            });
+        }
+
+        if ($selectedStatus !== '') {
+            $inscriptionsQuery->where('statut', $selectedStatus);
+        }
+
+        if ($selectedClasseId > 0) {
+            $inscriptionsQuery->where('classe_id', $selectedClasseId);
+        }
+
+        if ($selectedAnneeId > 0) {
+            $inscriptionsQuery->where('annee_scolaire_id', $selectedAnneeId);
+        }
+
+        $inscriptions = $inscriptionsQuery
             ->orderByDesc('annee_scolaire_id')
             ->orderBy('classe_id')
+            ->orderBy('eleve_id')
             ->get();
 
         $historicalByEleve = DB::table('historical_import_result_mappings')
@@ -33,14 +65,51 @@ class EleveInscriptionController extends Controller
             ->get()
             ->keyBy('eleve_id');
 
+        $activeYear = AnneeScolaire::query()
+            ->where('statut', 'active')
+            ->latest('date_debut')
+            ->first();
+
+        $classes = Classe::query()
+            ->with('filiere')
+            ->orderBy('code')
+            ->get();
+
+        $anneesScolaires = AnneeScolaire::query()
+            ->orderByDesc('date_debut')
+            ->get();
+
+        $filteredHistoricalCount = $inscriptions
+            ->filter(fn (Inscription $inscription) => $historicalByEleve->has($inscription->eleve_id))
+            ->count();
+
+        $statusBreakdown = [
+            'inscrit' => (clone $inscriptionsQuery)->where('statut', 'inscrit')->count(),
+            'transfere' => (clone $inscriptionsQuery)->where('statut', 'transfere')->count(),
+            'abandonne' => (clone $inscriptionsQuery)->where('statut', 'abandonne')->count(),
+            'suspendu' => (clone $inscriptionsQuery)->where('statut', 'suspendu')->count(),
+        ];
+
         return view('eleves.inscriptions', [
             'inscriptions' => $inscriptions,
             'historicalByEleve' => $historicalByEleve,
+            'activeYear' => $activeYear,
+            'classes' => $classes,
+            'anneesScolaires' => $anneesScolaires,
+            'filters' => [
+                'q' => $search,
+                'statut' => $selectedStatus,
+                'classe_id' => $selectedClasseId > 0 ? $selectedClasseId : null,
+                'annee_scolaire_id' => $selectedAnneeId > 0 ? $selectedAnneeId : null,
+            ],
             'stats' => [
                 'eleves' => Eleve::count(),
                 'inscriptions' => Inscription::count(),
                 'classes_couvertes' => Inscription::distinct('classe_id')->count('classe_id'),
                 'eleves_historiques' => $historicalByEleve->count(),
+                'resultats_filtres' => $inscriptions->count(),
+                'historiques_filtres' => $filteredHistoricalCount,
+                'statuts_filtres' => $statusBreakdown,
             ],
         ]);
     }

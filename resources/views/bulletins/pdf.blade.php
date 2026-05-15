@@ -3,326 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <title>Bulletin trimestriel</title>
+    @php
+        $logoPath = public_path('images/logo_i3p.jpg');
+        $logoSrc = file_exists($logoPath)
+            ? 'data:image/jpeg;base64,'.base64_encode(file_get_contents($logoPath))
+            : '';
+    @endphp
     <style>
+        @page {
+            margin: 18px 22px 22px 22px;
+        }
+
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            color: #0f172a;
-            font-size: 12px;
-            margin: 26px;
+            font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
+            color: #111827;
+            font-size: 11px;
+            margin: 0;
             background: #ffffff;
         }
 
-        .header {
-            border: 1px solid #cbd5e1;
-            border-top: 6px solid #7d221b;
-            border-radius: 18px;
-            padding: 18px 20px;
-            margin-bottom: 18px;
-            background: linear-gradient(180deg, #fffdfb 0%, #ffffff 100%);
-        }
-
         .header-table,
-        .meta-table,
-        .results-table {
+        .identity-table,
+        .results-table,
+        .summary-table,
+        .signatures-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .logo-cell {
-            width: 90px;
+        .header-table td {
             vertical-align: top;
+        }
+
+        .header-left {
+            width: 8%;
+        }
+
+        .header-middle {
+            width: 56%;
+            text-align: left;
+        }
+
+        .header-right {
+            width: 36%;
+            text-align: right;
+        }
+
+        .top-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .top-line {
+            margin-top: 2px;
+            line-height: 1.45;
         }
 
         .logo {
-            width: 72px;
+            width: 46px;
             height: auto;
-        }
-
-        .title {
-            font-size: 25px;
-            font-weight: 700;
-            margin: 0 0 6px 0;
-            color: #7d221b;
-        }
-
-        .institution {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: #0f4d6a;
-            margin-bottom: 6px;
-        }
-
-        .subtitle {
             margin: 0;
-            color: #475569;
-            line-height: 1.5;
+            display: block;
         }
 
-        .box {
-            border: 1px solid #cbd5e1;
-            border-radius: 14px;
-            padding: 14px 16px;
-            margin-bottom: 16px;
-            background: #ffffff;
+        .bulletin-title {
+            margin-top: 16px;
+            text-align: center;
         }
 
-        .box-title {
+        .bulletin-title h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #17763c;
+            text-transform: uppercase;
+        }
+
+        .bulletin-title p {
+            margin: 4px 0 0 0;
+            font-size: 12px;
+        }
+
+        .identity-table {
+            margin-top: 14px;
             font-size: 11px;
+        }
+
+        .identity-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        .identity-label {
+            width: 18%;
             font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: #7d221b;
-            margin-bottom: 10px;
         }
 
-        .meta-table td {
-            padding: 6px 8px;
-            vertical-align: top;
-        }
-
-        .meta-label {
+        .identity-value {
+            width: 32%;
+            color: #9a1f1f;
             font-weight: 700;
-            color: #334155;
-            width: 130px;
         }
 
-        .summary-table {
-            width: 100%;
-            margin-bottom: 16px;
-            border-collapse: separate;
-            border-spacing: 10px 0;
+        .identity-context {
+            font-weight: 700;
+            color: #17763c;
         }
 
-        .summary-card {
-            border: 1px solid #cbd5e1;
-            border-radius: 14px;
-            padding: 12px 14px;
-            background: #f8fafc;
-            min-height: 74px;
-        }
-
-        .summary-label {
+        .results-table {
+            margin-top: 14px;
+            border: 1px solid #111827;
             font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: #64748b;
         }
 
-        .summary-value {
-            margin-top: 8px;
-            font-size: 20px;
-            font-weight: 700;
-            color: #0f4d6a;
+        .results-table th,
+        .results-table td {
+            border: 1px solid #111827;
+            padding: 4px 5px;
         }
 
         .results-table th {
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            font-size: 10px;
-            text-align: left;
-            color: #475569;
-            border-bottom: 1px solid #94a3b8;
-            padding: 10px 8px;
-            background: #f8fafc;
+            font-size: 9px;
+            line-height: 1.25;
+            text-align: center;
+            background: #f3f4f6;
         }
 
         .results-table td {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 10px 8px;
+            vertical-align: middle;
         }
 
-        .results-table tbody tr:nth-child(even) td {
-            background: #fcfcfd;
+        .text-left {
+            text-align: left;
         }
 
-        .results-table tfoot td {
-            border-top: 1px solid #94a3b8;
-            border-bottom: none;
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .nowrap {
+            white-space: nowrap;
+        }
+
+        .totals-row td {
             font-weight: 700;
-            background: #f8fafc;
+            background: #f9fafb;
         }
 
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border: 1px solid #a7f3d0;
-            border-radius: 999px;
-            background: #ecfdf5;
-            color: #047857;
-            font-weight: 700;
-        }
-
-        .footer-grid {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: separate;
-            border-spacing: 14px 0;
-        }
-
-        .signature-box {
-            border: 1px solid #cbd5e1;
-            border-radius: 14px;
-            padding: 14px 16px 32px 16px;
-            vertical-align: top;
-        }
-
-        .signature-title {
-            font-weight: 700;
-            color: #334155;
-            margin-bottom: 38px;
-        }
-
-        .signature-line {
-            border-top: 1px solid #94a3b8;
-            padding-top: 6px;
-            color: #64748b;
+        .summary-table {
+            margin-top: 10px;
             font-size: 11px;
         }
 
-        .document-note {
-            margin-top: 18px;
+        .summary-table td {
+            padding: 4px 6px;
+        }
+
+        .summary-label {
+            font-weight: 700;
+        }
+
+        .summary-accent {
+            color: #9a1f1f;
+            font-weight: 700;
+        }
+
+        .appreciation-box {
+            margin-top: 8px;
+            border: 1px solid #111827;
+            padding: 8px 10px;
+            min-height: 44px;
+        }
+
+        .signatures-table {
+            margin-top: 14px;
+        }
+
+        .signatures-table td {
+            width: 50%;
+            padding-top: 24px;
+            vertical-align: top;
+        }
+
+        .signature-line {
+            margin-top: 42px;
+            border-top: 1px solid #111827;
+            padding-top: 4px;
+            width: 75%;
+        }
+
+        .footer-note {
+            margin-top: 12px;
             font-size: 10px;
-            line-height: 1.6;
-            color: #64748b;
+            color: #4b5563;
             text-align: right;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <table class="header-table">
-            <tr>
-                <td class="logo-cell">
-                    <img src="{{ public_path('images/logo_i3p.jpg') }}" alt="Logo I3P" class="logo">
-                </td>
-                <td>
-                    <div class="institution">Institut I3P</div>
-                    <div class="title">Bulletin trimestriel</div>
-                    <p class="subtitle">
-                        Institut I3P - Bulletin scolaire de demonstration etabli pour
-                        <strong>{{ $eleve->nom }} {{ $eleve->prenoms }}</strong>.
-                    </p>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="box">
-        <div class="box-title">Identite scolaire</div>
-        <table class="meta-table">
-            <tr>
-                <td class="meta-label">Matricule</td>
-                <td>{{ $eleve->matricule }}</td>
-                <td class="meta-label">Annee scolaire</td>
-                <td>{{ $annee?->libelle ?? 'Non definie' }}</td>
-            </tr>
-            <tr>
-                <td class="meta-label">Classe</td>
-                <td>{{ $classe?->code }} - {{ $classe?->nom }}</td>
-                <td class="meta-label">Trimestre</td>
-                <td>{{ $trimestre->libelle }}</td>
-            </tr>
-            <tr>
-                <td class="meta-label">Filiere</td>
-                <td>{{ $classe?->filiere?->nom ?? 'Non definie' }}</td>
-                <td class="meta-label">Date emission</td>
-                <td>{{ $dateEmission->format('d/m/Y H:i') }}</td>
-            </tr>
-        </table>
-    </div>
-
-    <table class="summary-table">
+    <table class="header-table">
         <tr>
-            <td>
-                <div class="summary-card">
-                    <div class="summary-label">Moyenne generale</div>
-                    <div class="summary-value">{{ $synthese['moyenne_generale'] !== null ? number_format($synthese['moyenne_generale'], 2, ',', ' ') : 'N/D' }}</div>
-                </div>
+            <td class="header-left">
+                <img src="{{ $logoSrc }}" alt="Logo I3P" class="logo">
             </td>
-            <td>
-                <div class="summary-card">
-                    <div class="summary-label">Total points</div>
-                    <div class="summary-value">{{ number_format($synthese['total_points'], 2, ',', ' ') }}</div>
-                </div>
+            <td class="header-middle">
+                <div class="top-title">{{ $header['institution_name'] }}</div>
+                <div class="top-line">{{ $header['contact_line'] }}</div>
+                <div class="top-line">{{ $header['email_line'] }}</div>
             </td>
-            <td>
-                <div class="summary-card">
-                    <div class="summary-label">Rang</div>
-                    <div class="summary-value">{{ $synthese['rang'] ?? 'N/D' }}</div>
-                </div>
+            <td class="header-right">
+                <div class="top-title">{{ $header['republic_title'] }}</div>
+                <div class="top-line">{{ $header['republic_subtitle'] }}</div>
             </td>
         </tr>
     </table>
 
-    <div class="box">
-        <div class="box-title">Resultats par matiere</div>
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th>Matiere</th>
-                    <th>Coef.</th>
-                    <th>Moy. devoirs</th>
-                    <th>Composition</th>
-                    <th>Moyenne matiere</th>
-                    <th>Points</th>
-                    <th>Rang</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($resultats as $resultat)
-                    <tr>
-                        <td><strong>{{ $resultat->matiere?->libelle }}</strong></td>
-                        <td>{{ rtrim(rtrim(number_format((float) $resultat->coefficient, 2, '.', ''), '0'), '.') }}</td>
-                        <td>{{ $resultat->moyenne_devoirs !== null ? number_format((float) $resultat->moyenne_devoirs, 2, ',', ' ') : 'N/D' }}</td>
-                        <td>{{ $resultat->composition !== null ? number_format((float) $resultat->composition, 2, ',', ' ') : 'N/D' }}</td>
-                        <td>
-                            @if ($resultat->moyenne_matiere !== null)
-                                <span class="badge">{{ number_format((float) $resultat->moyenne_matiere, 2, ',', ' ') }}</span>
-                            @else
-                                N/D
-                            @endif
-                        </td>
-                        <td>{{ $resultat->points !== null ? number_format((float) $resultat->points, 2, ',', ' ') : 'N/D' }}</td>
-                        <td>{{ $resultat->rang ?? 'N/D' }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td>Totaux</td>
-                    <td>{{ rtrim(rtrim(number_format((float) $synthese['total_coefficients'], 2, '.', ''), '0'), '.') }}</td>
-                    <td></td>
-                    <td></td>
-                    <td>{{ $synthese['moyenne_generale'] !== null ? number_format($synthese['moyenne_generale'], 2, ',', ' ') : 'N/D' }}</td>
-                    <td>{{ number_format($synthese['total_points'], 2, ',', ' ') }}</td>
-                    <td>{{ $synthese['rang'] ?? 'N/D' }}</td>
-                </tr>
-            </tfoot>
-        </table>
+    <div class="bulletin-title">
+        <h1>Bulletin de notes</h1>
+        <p>Du {{ $trimestre->libelle }} - {{ $annee?->libelle ?? 'Annee non definie' }}</p>
     </div>
 
-    <table class="footer-grid">
+    <table class="identity-table">
         <tr>
-            <td class="signature-box">
-                <div class="box-title">Appreciation generale</div>
-                <div style="color:#475569; line-height:1.7;">
-                    Bulletin de demonstration I3P. Cette zone pourra accueillir l appreciation du conseil de classe
-                    et les observations pedagogiques.
-                </div>
-            </td>
-            <td class="signature-box">
-                <div class="box-title">Visa administratif</div>
-                <div class="signature-title">Direction</div>
+            <td class="identity-label">De l'eleve :</td>
+            <td class="identity-value">{{ $eleve->nom }} {{ $eleve->prenoms }}</td>
+            <td class="identity-label">Matricule</td>
+            <td>{{ $eleve->matricule }}</td>
+        </tr>
+        <tr>
+            <td colspan="2" class="identity-context">{{ $classe?->filiere?->nom ?? 'Filiere non definie' }}</td>
+            <td colspan="2" class="identity-context">{{ $classe?->code }} {{ $classe?->nom }}</td>
+        </tr>
+        <tr>
+            <td class="identity-label">Date d'emission</td>
+            <td>{{ $dateEmission->format('d/m/Y') }}</td>
+            <td class="identity-label">Effectif</td>
+            <td>{{ $synthese['effectif'] }} eleve(s)</td>
+        </tr>
+    </table>
+
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th class="text-left">Disciplines</th>
+                <th>Note de classe</th>
+                <th>Compo.</th>
+                <th>Moyenne<br>sur 20</th>
+                <th>Coef.</th>
+                <th>Moy. x coef</th>
+                <th>Rang</th>
+                <th class="text-left">Nom professeur</th>
+                <th class="text-left">Appreciation</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($lignes as $ligne)
+                <tr>
+                    <td class="text-left">{{ $ligne['matiere'] }}</td>
+                    <td class="text-center nowrap">{{ $ligne['moyenne_devoirs'] !== null ? number_format((float) $ligne['moyenne_devoirs'], 2, ',', ' ') : '--' }}</td>
+                    <td class="text-center nowrap">{{ $ligne['composition'] !== null ? number_format((float) $ligne['composition'], 2, ',', ' ') : '--' }}</td>
+                    <td class="text-center nowrap">{{ $ligne['moyenne_matiere'] !== null ? number_format((float) $ligne['moyenne_matiere'], 2, ',', ' ') : '--' }}</td>
+                    <td class="text-center">{{ rtrim(rtrim(number_format((float) $ligne['coefficient'], 2, '.', ''), '0'), '.') }}</td>
+                    <td class="text-center nowrap">{{ $ligne['points'] !== null ? number_format((float) $ligne['points'], 2, ',', ' ') : '--' }}</td>
+                    <td class="text-center">{{ $ligne['rang'] ?? '--' }}</td>
+                    <td class="text-left">{{ $ligne['professeur'] ?? '--' }}</td>
+                    <td class="text-left">{{ $ligne['appreciation'] ?? '--' }}</td>
+                </tr>
+            @endforeach
+            <tr class="totals-row">
+                <td class="text-left">Totaux</td>
+                <td></td>
+                <td></td>
+                <td class="text-center">{{ $synthese['moyenne_generale'] !== null ? number_format($synthese['moyenne_generale'], 2, ',', ' ') : '--' }}</td>
+                <td class="text-center">{{ rtrim(rtrim(number_format((float) $synthese['total_coefficients'], 2, '.', ''), '0'), '.') }}</td>
+                <td class="text-center">{{ number_format($synthese['total_points'], 2, ',', ' ') }}</td>
+                <td class="text-center">{{ $synthese['rang'] ?? '--' }}</td>
+                <td colspan="2"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="summary-table">
+        <tr>
+            <td class="summary-label">Premier:</td>
+            <td>{{ $synthese['premier'] !== null ? number_format($synthese['premier'], 2, ',', ' ') : '--' }}</td>
+            <td class="summary-label">Dernier:</td>
+            <td>{{ $synthese['dernier'] !== null ? number_format($synthese['dernier'], 2, ',', ' ') : '--' }}</td>
+        </tr>
+        <tr>
+            <td class="summary-label">Moyenne:</td>
+            <td class="summary-accent">{{ $synthese['moyenne_generale'] !== null ? number_format($synthese['moyenne_generale'], 2, ',', ' ') : '--' }}</td>
+            <td class="summary-label">Rang:</td>
+            <td><span class="summary-accent">{{ $synthese['rang'] ?? '--' }}</span> sur {{ $synthese['effectif'] }}</td>
+        </tr>
+        <tr>
+            <td class="summary-label">Appreciation:</td>
+            <td colspan="3" class="summary-accent">{{ $synthese['appreciation_generale'] }}</td>
+        </tr>
+        <tr>
+            <td class="summary-label">Sanction:</td>
+            <td colspan="3">{{ $synthese['sanction'] }}</td>
+        </tr>
+    </table>
+
+    <div class="appreciation-box">
+        {{ $synthese['appreciation_generale'] }}
+    </div>
+
+    <table class="signatures-table">
+        <tr>
+            <td></td>
+            <td>
+                <div class="summary-label">Direction</div>
                 <div class="signature-line">Cachet / Signature</div>
             </td>
         </tr>
     </table>
 
-    <div class="document-note">
-        Emission : {{ $dateEmission->format('d/m/Y H:i') }} - Generation automatique I3P
+    <div class="footer-note">
+        Emission automatique I3P - {{ $dateEmission->format('d/m/Y H:i') }}
     </div>
 </body>
 </html>

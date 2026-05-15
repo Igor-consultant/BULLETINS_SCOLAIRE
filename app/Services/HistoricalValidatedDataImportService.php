@@ -21,6 +21,8 @@ use RuntimeException;
 
 class HistoricalValidatedDataImportService
 {
+    protected ?string $forcedAcademicYearLabel = null;
+
     public function import(int $batchId, ?array $onlySheets = null): HistoricalImportBatch
     {
         $batch = HistoricalImportBatch::with('sheets')->findOrFail($batchId);
@@ -39,6 +41,17 @@ class HistoricalValidatedDataImportService
         }
 
         return $batch->fresh();
+    }
+
+    public function importIntoAcademicYear(int $batchId, string $academicYearLabel, ?array $onlySheets = null): HistoricalImportBatch
+    {
+        $this->forcedAcademicYearLabel = $academicYearLabel;
+
+        try {
+            return $this->import($batchId, $onlySheets);
+        } finally {
+            $this->forcedAcademicYearLabel = null;
+        }
     }
 
     protected function importSheet(int $batchId, string $sheetName): HistoricalImportFinalization
@@ -192,6 +205,10 @@ class HistoricalValidatedDataImportService
 
     protected function resolveAcademicYearLabel(Collection $validatedBulletins): string
     {
+        if ($this->forcedAcademicYearLabel !== null) {
+            return $this->forcedAcademicYearLabel;
+        }
+
         $rawLabel = $validatedBulletins->pluck('academic_year_label')->filter()->mode()[0] ?? null;
 
         if ($rawLabel !== null && preg_match('/(20\d{2})\s*-\s*(20\d{2})/', $rawLabel, $matches) === 1) {
@@ -203,6 +220,12 @@ class HistoricalValidatedDataImportService
 
     protected function resolveAnneeScolaire(string $label): AnneeScolaire
     {
+        $existing = AnneeScolaire::query()->where('libelle', $label)->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
         preg_match('/(20\d{2})-(20\d{2})/', $label, $matches);
         $startYear = isset($matches[1]) ? (int) $matches[1] : 2021;
         $endYear = isset($matches[2]) ? (int) $matches[2] : $startYear + 1;
@@ -250,9 +273,9 @@ class HistoricalValidatedDataImportService
         $filiereMap = [
             'STA' => ['code' => 'GI', 'nom' => 'Genie industriel'],
             'PF2' => ['code' => 'ELN', 'nom' => 'Electronique'],
-            'PF3' => ['code' => 'ELN', 'nom' => 'Electronique'],
-            'TF2' => ['code' => 'ELT', 'nom' => 'Electrotechnique'],
-            'TE' => ['code' => 'ELT', 'nom' => 'Electrotechnique'],
+            'PF3' => ['code' => 'ELT', 'nom' => 'Electrotechnique'],
+            'TF2' => ['code' => 'ELN', 'nom' => 'Electronique'],
+            'TE' => ['code' => 'GI', 'nom' => 'Genie industriel'],
         ];
 
         $filiereData = $filiereMap[$classCode] ?? ['code' => 'HIST', 'nom' => 'Historique'];

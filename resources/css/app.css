@@ -3,17 +3,69 @@
 @tailwind utilities;
 
 @layer base {
+    :root {
+        --i3p-bg: #f3ede3;
+        --i3p-surface: rgba(255, 255, 255, 0.88);
+        --i3p-surface-strong: #ffffff;
+        --i3p-border: rgba(148, 163, 184, 0.24);
+        --i3p-ink: #0f172a;
+        --i3p-muted: #64748b;
+        --i3p-brand: #10233d;
+        --i3p-brand-soft: #17395a;
+        --i3p-accent: #0ca6e8;
+        --i3p-warm: #b02f25;
+        --font-sans: "Segoe UI Variable Text", "Segoe UI", "Trebuchet MS", sans-serif;
+        --font-display: "Bahnschrift", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+    }
+
+    html {
+        @apply scroll-smooth;
+    }
+
     body {
-        @apply bg-[#f6f2eb] text-slate-900;
+        @apply text-slate-900;
         background-image:
-            radial-gradient(circle at top left, rgba(12, 166, 232, 0.14), transparent 24%),
-            radial-gradient(circle at top right, rgba(219, 47, 32, 0.12), transparent 20%),
-            linear-gradient(180deg, #f9f6ef 0%, #f2ece2 100%);
-        font-family: Arial, Helvetica, sans-serif;
+            radial-gradient(circle at top left, rgba(12, 166, 232, 0.12), transparent 24%),
+            radial-gradient(circle at top right, rgba(176, 47, 37, 0.11), transparent 18%),
+            linear-gradient(180deg, #faf7f1 0%, var(--i3p-bg) 100%);
+        font-family: var(--font-sans);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-family: var(--font-display);
+    }
+
+    select,
+    textarea,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="date"],
+    input[type="number"] {
+        @apply rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition;
+    }
+
+    select:focus,
+    textarea:focus,
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    input[type="date"]:focus,
+    input[type="number"]:focus {
+        outline: none;
+        border-color: rgba(12, 166, 232, 0.95);
+        box-shadow: 0 0 0 4px rgba(12, 166, 232, 0.12);
     }
 }
 
 @layer components {
+    .i3p-body {
+        background-color: var(--i3p-bg);
+    }
+
     .i3p-shell {
         @apply min-h-screen text-slate-900;
     }
@@ -22,12 +74,18 @@
         @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
     }
 
+    .i3p-main {
+        @apply min-h-screen;
+    }
+
     .i3p-card {
-        @apply rounded-3xl border border-white/60 bg-white/80 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur;
+        @apply rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur;
+        border-color: var(--i3p-border);
+        background: var(--i3p-surface);
     }
 
     .i3p-stat-card {
-        @apply rounded-2xl border border-slate-200/70 bg-white px-5 py-4 shadow-sm;
+        @apply rounded-[1.6rem] border border-slate-200/70 bg-white px-5 py-5 shadow-sm;
     }
 
     .i3p-kicker {
@@ -39,19 +97,19 @@
     }
 
     .i3p-link {
-        @apply inline-flex items-center rounded-full border border-[#0ca6e8]/20 bg-[#0ca6e8]/10 px-4 py-2 text-sm font-semibold text-[#0f4d6a] transition hover:border-[#0ca6e8]/35 hover:bg-[#0ca6e8]/15;
+        @apply inline-flex items-center justify-center rounded-full border border-[#0ca6e8]/20 bg-[#0ca6e8]/10 px-4 py-2.5 text-sm font-semibold text-[#0f4d6a] transition hover:border-[#0ca6e8]/35 hover:bg-[#0ca6e8]/15;
     }
 
     .i3p-title {
-        @apply text-[2rem] font-bold tracking-[-0.02em] text-slate-900 sm:text-[2.4rem];
+        @apply text-[2rem] font-bold tracking-[-0.03em] text-slate-950 sm:text-[2.55rem];
     }
 
     .i3p-section-title {
-        @apply text-[1.6rem] font-bold tracking-[-0.015em] text-slate-900 sm:text-[1.8rem];
+        @apply text-[1.65rem] font-bold tracking-[-0.03em] text-slate-950 sm:text-[1.95rem];
     }
 
     .i3p-copy {
-        @apply text-[15px] leading-7 text-slate-600;
+        @apply text-[15px] leading-8 text-slate-600;
     }
 
     .i3p-label {
@@ -71,11 +129,69 @@
     }
 
     .i3p-table thead th {
-        @apply pb-3 pe-4 text-[12px] font-bold uppercase tracking-[0.14em] text-slate-500;
+        @apply pb-4 pe-4 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500;
     }
 
     .i3p-table tbody td {
         @apply py-4 pe-4 align-top;
+    }
+
+    .i3p-sidebar-group {
+        @apply rounded-[1.5rem] border border-slate-200/80 bg-white/85 p-3 shadow-sm;
+    }
+
+    .i3p-sidebar-group-title {
+        @apply px-2 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500;
+    }
+
+    .i3p-sidebar-link {
+        @apply flex items-center justify-between gap-3 rounded-[1.15rem] px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-950;
+    }
+
+    .i3p-sidebar-link.is-active {
+        @apply border border-[#b02f25]/10 bg-[#fff3ef] text-[#7d221b] shadow-sm;
+    }
+
+    .i3p-utility-link {
+        @apply inline-flex flex-1 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950;
+    }
+
+    .i3p-action-card {
+        @apply rounded-[1.6rem] border border-slate-200 bg-white px-5 py-5 shadow-sm transition;
+    }
+
+    .i3p-action-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(12, 166, 232, 0.28);
+        box-shadow: 0 22px 60px rgba(15, 23, 42, 0.10);
+    }
+
+    .i3p-action-kicker {
+        @apply text-[11px] font-bold uppercase tracking-[0.2em] text-[#b02f25];
+    }
+
+    .i3p-priority-card {
+        @apply rounded-[1.5rem] border border-slate-200 bg-white px-5 py-5 shadow-sm;
+    }
+
+    .i3p-priority-title {
+        @apply text-base font-bold tracking-[-0.02em] text-slate-950;
+    }
+
+    .i3p-action-row {
+        @apply flex flex-col rounded-[1.4rem] border border-slate-200 bg-white px-5 py-4 transition hover:border-[#0ca6e8]/30 hover:bg-slate-50;
+    }
+
+    .i3p-input {
+        @apply block w-full;
+    }
+
+    .i3p-record-card {
+        @apply rounded-[1.85rem] border border-slate-200 bg-white px-5 py-5 shadow-sm sm:px-6;
+    }
+
+    .i3p-record-meta {
+        @apply rounded-[1.4rem] border border-slate-200 bg-slate-50/70 px-4 py-4;
     }
 
     .i3p-bulletin {

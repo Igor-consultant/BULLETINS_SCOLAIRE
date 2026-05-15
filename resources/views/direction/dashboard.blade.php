@@ -23,6 +23,67 @@
     </x-slot>
 
     <div class="i3p-container mt-8 space-y-8">
+        <section class="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+            <article class="i3p-card p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="i3p-kicker text-[#b02f25]">Pilotage executif</p>
+                        <h2 class="i3p-section-title mt-2">Vision de decision</h2>
+                        <p class="mt-3 max-w-2xl text-[14px] leading-7 text-slate-600">
+                            Cette vue doit servir a arbitrer rapidement: completude des resultats, couverture par classe, blocages financiers et activite sensible.
+                        </p>
+                    </div>
+                    <span class="i3p-badge border-slate-200 bg-slate-100 text-slate-700">Direction</span>
+                </div>
+
+                <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div class="i3p-priority-card">
+                        <div class="i3p-action-kicker">Couverture</div>
+                        <div class="mt-2 text-2xl font-bold text-slate-950">{{ $stats['bulletins_disponibles'] }}</div>
+                        <div class="mt-2 text-sm text-slate-600">eleves avec bulletin exploitable</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-action-kicker">Alerte</div>
+                        <div class="mt-2 text-2xl font-bold text-[#8e251d]">{{ $stats['bulletins_indisponibles'] }}</div>
+                        <div class="mt-2 text-sm text-slate-600">eleves sans bulletin disponible</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-action-kicker">Comptabilite</div>
+                        <div class="mt-2 text-2xl font-bold text-[#8e251d]">{{ $stats['blocages_bulletin'] }}</div>
+                        <div class="mt-2 text-sm text-slate-600">acces bloques par statut financier</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-action-kicker">Trace</div>
+                        <div class="mt-2 text-2xl font-bold text-slate-950">{{ $stats['audits_recents'] }}</div>
+                        <div class="mt-2 text-sm text-slate-600">entrees auditees en base</div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="i3p-card p-6">
+                <p class="i3p-kicker text-[#b02f25]">Actions decidees</p>
+                <h2 class="i3p-section-title mt-2">Raccourcis de supervision</h2>
+                <div class="mt-6 grid gap-3">
+                    <a href="{{ route('resultats.trimestriels') }}" class="i3p-action-row">
+                        <span class="font-bold text-slate-950">Verifier les resultats trimestriels</span>
+                        <span class="text-sm text-slate-500">Calculs, moyennes, rangs</span>
+                    </a>
+                    <a href="{{ route('comptabilite.statuts') }}" class="i3p-action-row">
+                        <span class="font-bold text-slate-950">Controler les blocages comptables</span>
+                        <span class="text-sm text-slate-500">Acces bulletin et paiements</span>
+                    </a>
+                    <a href="{{ route('bulletins.historiques') }}" class="i3p-action-row">
+                        <span class="font-bold text-slate-950">Consulter les historiques importes</span>
+                        <span class="text-sm text-slate-500">Archives par annee, classe et eleve</span>
+                    </a>
+                    <a href="{{ route('notes.evaluations') }}" class="i3p-action-row">
+                        <span class="font-bold text-slate-950">Suivre la saisie pedagogique</span>
+                        <span class="text-sm text-slate-500">Evaluations, notes, absences</span>
+                    </a>
+                </div>
+            </article>
+        </section>
+
         <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <article class="i3p-stat-card">
                 <div class="i3p-label">Eleves</div>

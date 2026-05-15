@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BulletinController;
+use App\Http\Controllers\BulletinSettingController;
 use App\Http\Controllers\ComptabiliteController;
 use App\Http\Controllers\EleveInscriptionController;
 use App\Http\Controllers\EvaluationController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\HistoricalImportReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReferentielMatiereController;
 use App\Http\Controllers\ResultatTrimestrielController;
+use App\Http\Controllers\SchoolDataImportController;
 use App\Models\AnneeScolaire;
 use App\Models\Audit;
 use App\Models\Classe;
@@ -23,6 +25,7 @@ use App\Models\PaiementStatut;
 use App\Models\Resultat;
 use App\Models\Trimestre;
 use App\Services\BulletinWorkflowService;
+use App\Services\BulletinSettingsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -302,6 +305,13 @@ Route::get('/audits', function (Request $request) use ($ensureRoles) {
     ]);
 })->middleware(['auth', 'verified'])->name('audits.index');
 
+Route::get('/administration/import-scolarite', [SchoolDataImportController::class, 'create'])
+    ->middleware(['auth', 'verified'])
+    ->name('administration.import-scolarite.create');
+Route::post('/administration/import-scolarite', [SchoolDataImportController::class, 'store'])
+    ->middleware(['auth', 'verified'])
+    ->name('administration.import-scolarite.store');
+
 Route::post('/resultats/trimestriels/enregistrer', [ResultatTrimestrielController::class, 'store'])
     ->middleware(['auth', 'verified'])
     ->name('resultats.trimestriels.enregistrer');
@@ -309,6 +319,12 @@ Route::post('/resultats/trimestriels/enregistrer', [ResultatTrimestrielControlle
 Route::get('/bulletins/lots', [BulletinController::class, 'lots'])
     ->middleware(['auth', 'verified'])
     ->name('bulletins.lots');
+Route::get('/bulletins/parametres', [BulletinSettingController::class, 'edit'])
+    ->middleware(['auth', 'verified'])
+    ->name('bulletins.settings.edit');
+Route::put('/bulletins/parametres', [BulletinSettingController::class, 'update'])
+    ->middleware(['auth', 'verified'])
+    ->name('bulletins.settings.update');
 Route::get('/bulletins/historiques', [HistoricalImportReportController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('bulletins.historiques');
@@ -399,7 +415,13 @@ Route::get('/portail/parent', function (Request $request) use ($findPaiementStat
     $totalPoints = $resultatsTrimestre->sum(fn ($resultat) => (float) $resultat->points);
     $totalCoefficients = $resultatsTrimestre->sum(fn ($resultat) => (float) $resultat->coefficient);
     $moyenneGenerale = $totalCoefficients > 0 ? $totalPoints / $totalCoefficients : null;
-    $rang = $resultatsTrimestre->pluck('rang')->filter(fn ($value) => $value !== null)->first();
+    $classeStats = $inscriptionActive?->classe && $trimestre
+        ? app(BulletinWorkflowService::class)->computeClasseStats($inscriptionActive->classe->id, $trimestre->id)
+        : ['rang' => []];
+    $rang = $classeStats['rang'][$eleve->id] ?? null;
+    $accesBulletinAutorise = $trimestre
+        ? app(BulletinWorkflowService::class)->bulletinAccessAllowed($eleve, $trimestre)
+        : (! app(BulletinSettingsService::class)->paymentGateEnabled() || ($paiementStatut?->autorise_acces_bulletin ?? true));
     $statutPaiement = $paiementStatut?->statut;
     $messagesPaiement = [
         'a_jour' => [
@@ -436,7 +458,7 @@ Route::get('/portail/parent', function (Request $request) use ($findPaiementStat
         'classe' => $inscriptionActive?->classe,
         'anneeScolaire' => $inscriptionActive?->anneeScolaire,
         'paiementStatut' => $paiementStatut,
-        'accesBulletinAutorise' => $paiementStatut?->autorise_acces_bulletin ?? true,
+        'accesBulletinAutorise' => $accesBulletinAutorise,
         'messagePaiement' => $messagePaiement,
         'resultatsRapides' => [
             'moyenne_generale' => $moyenneGenerale,

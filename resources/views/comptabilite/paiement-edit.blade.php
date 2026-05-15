@@ -33,54 +33,73 @@
             </div>
         @endif
 
-        <section class="i3p-card p-6">
-            <form method="POST" action="{{ route('comptabilite.paiements.update', [$paiementStatut, $paiement]) }}" class="grid gap-6 lg:grid-cols-2">
-                @csrf
-                @method('PUT')
+        <section class="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+            <article class="i3p-card p-6">
+                <p class="i3p-kicker text-[#b02f25]">Edition d ecriture</p>
+                <h2 class="i3p-section-title mt-2">Mise a jour du paiement</h2>
+                <form method="POST" action="{{ route('comptabilite.paiements.update', [$paiementStatut, $paiement]) }}" class="mt-6 grid gap-6 lg:grid-cols-2">
+                    @csrf
+                    @method('PUT')
 
-                <div>
-                    <label for="date_paiement" class="i3p-label">Date de paiement</label>
-                    <input id="date_paiement" name="date_paiement" type="date" value="{{ old('date_paiement', $paiement->date_paiement?->format('Y-m-d')) }}" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20" required>
-                </div>
+                    <div>
+                        <label for="date_paiement" class="i3p-label">Date de paiement</label>
+                        <input id="date_paiement" name="date_paiement" type="date" value="{{ old('date_paiement', $paiement->date_paiement?->format('Y-m-d')) }}" class="mt-2 w-full" required>
+                    </div>
 
-                <div>
-                    <label for="montant" class="i3p-label">Montant</label>
-                    <input id="montant" name="montant" type="number" min="0.01" step="0.01" value="{{ old('montant', (float) $paiement->montant) }}" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20" required>
-                </div>
+                    <div>
+                        <label for="montant" class="i3p-label">Montant</label>
+                        <input id="montant" name="montant" type="number" min="0.01" step="0.01" value="{{ old('montant', (float) $paiement->montant) }}" class="mt-2 w-full" required>
+                    </div>
 
-                <div>
-                    <label for="mode_paiement" class="i3p-label">Mode de paiement</label>
-                    <select id="mode_paiement" name="mode_paiement" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20" required>
-                        @foreach ($modesPaiement as $value => $label)
-                            <option value="{{ $value }}" @selected(old('mode_paiement', $paiement->mode_paiement) === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                    <div>
+                        <label for="mode_paiement" class="i3p-label">Mode de paiement</label>
+                        <select id="mode_paiement" name="mode_paiement" class="mt-2 w-full" required>
+                            @foreach ($modesPaiement as $value => $label)
+                                <option value="{{ $value }}" @selected(old('mode_paiement', $paiement->mode_paiement) === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div>
-                    <label for="reference" class="i3p-label">Reference</label>
-                    <input id="reference" name="reference" type="text" value="{{ old('reference', $paiement->reference) }}" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20">
-                </div>
+                    <div>
+                        <label for="reference" class="i3p-label">Reference</label>
+                        <input id="reference" name="reference" type="text" value="{{ old('reference', $paiement->reference) }}" class="mt-2 w-full">
+                    </div>
 
-                <div class="lg:col-span-2">
-                    <label for="libelle" class="i3p-label">Libelle</label>
-                    <input id="libelle" name="libelle" type="text" value="{{ old('libelle', $paiement->libelle) }}" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20">
-                </div>
+                    <div class="lg:col-span-2">
+                        <label for="libelle" class="i3p-label">Libelle</label>
+                        <input id="libelle" name="libelle" type="text" value="{{ old('libelle', $paiement->libelle) }}" class="mt-2 w-full">
+                    </div>
 
-                <div class="lg:col-span-2">
-                    <label for="observation" class="i3p-label">Observation</label>
-                    <textarea id="observation" name="observation" rows="4" class="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-[#0ca6e8] focus:outline-none focus:ring-2 focus:ring-[#0ca6e8]/20">{{ old('observation', $paiement->observation) }}</textarea>
-                </div>
+                    <div class="lg:col-span-2">
+                        <label for="observation" class="i3p-label">Observation</label>
+                        <textarea id="observation" name="observation" rows="4" class="mt-2 w-full">{{ old('observation', $paiement->observation) }}</textarea>
+                    </div>
 
-                <div class="lg:col-span-2 flex flex-wrap gap-3">
-                    <button type="submit" class="i3p-link !border-[#b02f25]/20 !bg-[#b02f25]/10 !text-[#7d221b]">
-                        Enregistrer les modifications
-                    </button>
-                    <a href="{{ route('comptabilite.paiements', $paiementStatut) }}" class="i3p-link !border-slate-200 !bg-slate-50 !text-slate-700">
-                        Retour au registre
-                    </a>
+                    <div class="lg:col-span-2 flex flex-wrap gap-3">
+                        <button type="submit" class="i3p-link !border-[#b02f25]/20 !bg-[#b02f25]/10 !text-[#7d221b]">
+                            Enregistrer les modifications
+                        </button>
+                        <a href="{{ route('comptabilite.paiements', $paiementStatut) }}" class="i3p-link !border-slate-200 !bg-slate-100 !text-slate-700">
+                            Retour au registre
+                        </a>
+                    </div>
+                </form>
+            </article>
+
+            <article class="i3p-card p-6">
+                <p class="i3p-kicker text-[#b02f25]">Repere</p>
+                <h2 class="i3p-section-title mt-2">A verifier avant validation</h2>
+                <div class="mt-6 space-y-4">
+                    <div class="i3p-priority-card">
+                        <div class="i3p-priority-title">Date et montant exacts</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">La modification recalcule automatiquement le montant paye du dossier.</div>
+                    </div>
+                    <div class="i3p-priority-card">
+                        <div class="i3p-priority-title">Mode de paiement coherent</div>
+                        <div class="mt-2 text-sm leading-6 text-slate-600">Verifier espece, virement, mobile money ou cheque avant d enregistrer.</div>
+                    </div>
                 </div>
-            </form>
+            </article>
         </section>
     </div>
 </x-app-layout>

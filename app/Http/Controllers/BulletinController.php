@@ -94,7 +94,7 @@ class BulletinController extends Controller
         foreach ($eleves as $eleve) {
             $paiementStatut = $this->workflow->findPaiementStatutForTrimestre($eleve, $trimestre);
 
-            if ($paiementStatut && ! $paiementStatut->autorise_acces_bulletin) {
+            if (! $this->workflow->bulletinAccessAllowed($eleve, $trimestre)) {
                 $blockedStudents[] = $eleve->matricule.' - '.$eleve->nom.' '.$eleve->prenoms;
 
                 continue;
@@ -233,9 +233,7 @@ class BulletinController extends Controller
 
     private function ensureBulletinAccess(Eleve $eleve, Trimestre $trimestre): ?RedirectResponse
     {
-        $paiementStatut = $this->workflow->findPaiementStatutForTrimestre($eleve, $trimestre);
-
-        if ($paiementStatut && ! $paiementStatut->autorise_acces_bulletin) {
+        if (! $this->workflow->bulletinAccessAllowed($eleve, $trimestre)) {
             return redirect()
                 ->route('resultats.trimestriels')
                 ->with('status', "Acces au bulletin bloque pour {$eleve->nom} {$eleve->prenoms} en raison du statut financier.")
